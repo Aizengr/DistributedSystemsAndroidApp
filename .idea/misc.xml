@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/drawable/gradient_background.xml" value="0.1" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_chat_channel.xml" value="0.3233695652173913" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_loading.xml" value="0.215625" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_main.xml" value="0.5" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_profile.xml" value="0.40989583333333335" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_topic.xml" value="0.5541666666666667" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/app_bar_profile.xml" value="0.40989583333333335" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/content_profile.xml" value="0.40989583333333335" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_chat_me.xml" value="0.529891304347826" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_chat_other.xml" value="0.5" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_16" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
