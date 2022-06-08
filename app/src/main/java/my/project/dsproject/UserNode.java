@@ -81,12 +81,12 @@ public class UserNode implements Serializable {
         while(true) {
             final Message msg = new Message();
             final Message progress = new Message();
-            progress.what = 3;
+            progress.what = 201;
             this.handler.sendMessage(progress);
             int portResponse = checkBrokerPort(topic); //asking and receiving port number for correct Broker based on the topic
             String addressResponse = checkBrokerAddress();
             if (portResponse == 0 || addressResponse == null) {
-                msg.what = 1;
+                msg.what = -100;
                 System.out.println("SYSTEM: There is no existing topic named: " + topic +". Here are available ones: " + availableTopics);
                 this.handler.sendMessage(msg);
                 break;
@@ -94,7 +94,7 @@ public class UserNode implements Serializable {
                 System.out.println("SYSTEM: Switching Publisher connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
                 connect(portResponse, addressResponse, pubRequest);
             } else {
-                msg.what = 0;
+                msg.what = 100;
                 this.handler.sendMessage(msg);
                 break;
             }

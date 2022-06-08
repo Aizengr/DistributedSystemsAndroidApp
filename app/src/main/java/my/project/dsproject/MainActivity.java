@@ -15,6 +15,9 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,18 +34,28 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
 
 
-    private static final int TOPIC_FOUND = 0;
-    private static final int TOPIC_NOT_FOUND = -1;
-    private static final int IN_PROGRESS = 3;
-    private static final int NEW_MESSAGE_TEXT = 4;
-    private static final int INC_HISTORY = 5;
-    private static final int CONNECTION_FAILED = -100;
+    private static final int TOPIC_FOUND = 100;
+    private static final int TOPIC_NOT_FOUND = -100;
+
+    private static final int CONNECTION_IN_PROGRESS = 300;
+
+    private static final int NEW_MESSAGE_TEXT_SEND = 400;
+    private static final int NEW_MESSAGE_TEXT_RECEIVED = 500;
+
+    private static final int NEW_MESSAGE_FILE_SEND = 401;
+    private static final int NEW_MESSAGE_FILE_RECEIVED = 501;
+
+    private static final int HISTORY_READY = 200;
+    private static final int HISTORY_IN_PROGRESS = 201;
+
+    private static final int CONNECTION_FAILED = -1000;
 
     private boolean history_ready = false;
 
-    private Queue<Value> messageQueue;
-    private Queue<Value> conversationHistory;
+    private Queue<Value> sentMessageQueue;
+    private List<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
                 submitButton.setVisibility(v.INVISIBLE);
                 Profile profile = new Profile(username);
 
-                messageQueue = new LinkedBlockingQueue<>();
-                conversationHistory = new LinkedBlockingQueue<>();
+                sentMessageQueue = new LinkedBlockingQueue<>();
+                conversationHistory = new ArrayList<>();
                 receivedMessageQueue = new LinkedBlockingQueue<>();
 
                 ExecutorService serverConnection = Executors.newSingleThreadExecutor();
@@ -99,26 +112,30 @@ public class MainActivity extends AppCompatActivity {
                             else if (msg.what == TOPIC_FOUND){
                                 progressBar.setVisibility(View.INVISIBLE);
                                 submitButton.setVisibility(View.VISIBLE);
-                                Intent chatIntent = new Intent(MainActivity.this, ChatChannelActivity.class);
-                                chatIntent.putExtra("connectionHandler", new Messenger(this));
-                                chatIntent.putExtra("convoHistory", (Parcelable) conversationHistory);
-                                chatIntent.putExtra("receivedMessages", (Parcelable) receivedMessageQueue);
-                                startActivity(chatIntent);
                             }
-                            else if (msg.what == IN_PROGRESS){
+                            else if (msg.what == CONNECTION_IN_PROGRESS){
                                 progressBar.setVisibility(View.VISIBLE);
                             }
-                            else if (msg.what == NEW_MESSAGE_TEXT){
-                                messageQueue.add(new Value(msg.getData().getString("NEW_MESSAGE_TEXT"), profile, topic, "Publisher"));
+                            else if (msg.what == HISTORY_IN_PROGRESS){
+                                progressBar.setVisibility(View.VISIBLE);
                             }
-                            if (msg.what == 5) {
-                                history_ready = true;
+                            else if (msg.what == NEW_MESSAGE_TEXT_SEND){
+                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_TEXT"));
+                            }
+                            if (msg.what == HISTORY_READY) {
+                                progressBar.setVisibility(View.INVISIBLE);
+                                Intent chatIntent = new Intent(MainActivity.this, ChatChannelActivity.class);
+                                chatIntent.putExtra("connectionHandler", new Messenger(this));
+                                chatIntent.putExtra("convoHistory", (Serializable) conversationHistory);
+                                chatIntent.putExtra("profile", profile);
+                                chatIntent.putExtra("topic", topic);
+                                startActivity(chatIntent);
                             }
                         }
                     };
 
                     Consumer newCon = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic);
-                    Publisher newPub = new Publisher(profile, connectionHandler, messageQueue, topic);
+                    Publisher newPub = new Publisher(profile, connectionHandler, sentMessageQueue, topic);
                     Thread pubThread = new Thread(newPub);
                     Thread conThread = new Thread(newCon);
                     conThread.start();

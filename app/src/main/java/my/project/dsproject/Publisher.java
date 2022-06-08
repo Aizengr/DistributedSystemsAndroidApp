@@ -47,7 +47,7 @@ public class Publisher extends UserNode implements Runnable, Serializable{
             }
         } else {
             System.out.println("SYSTEM: Publisher exiting...");
-            msg.what = -100;
+            msg.what = -1000;
             this.handler.sendMessage(msg);
         }
     }

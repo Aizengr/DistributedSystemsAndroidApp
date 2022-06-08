@@ -15,10 +15,10 @@ import android.os.Message;
 public class Consumer extends UserNode implements Runnable,Serializable {
 
     private String topic;
-    private Queue<Value> conversationHistory;
+    private List<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
 
-    public Consumer(Profile profile, Handler handler, Queue<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic){
+    public Consumer(Profile profile, Handler handler, List<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic){
         super(profile, handler);
         this.conversationHistory = conversationHistory;
         this.receivedMessageQueue = receivedMessageQueue;
@@ -35,9 +35,12 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     public void run() {
         initializeConnection();
         final Message msg = new Message();
+        final Message inProgressMessage = new Message();
         if (this.socket != null) {
             topic = searchTopic(topic);
             if (topic != null) {
+                inProgressMessage.what = 201;
+                this.handler.sendMessage(inProgressMessage);
                 List<Value> data = getConversationData(topic); //getting conversation data at first
                 List<Value> chunkList = new ArrayList<>(); //separating chunks from live messages
                 for (Value message : data) {
@@ -45,13 +48,15 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                         //NEED TO DO WORK HERE IN CASE IT IS A FILE IN ORDER TO SEPARATE OR NOT FROM MESSAGES
                         chunkList.add(message); //if its a file add it to the chunklist
                     } else {
-                        System.out.println(message);
-                        conversationHistory.add(message);
+                        synchronized (this) {
+                            conversationHistory.add(message);
+                            System.out.println(message);
+                        }
                     }
                 }
-                msg.what = 5;
+                msg.what = 200;
                 this.handler.sendMessage(msg);
-                writeFilesByID(chunkList); //sorting chunk list and writing files
+                //writeFilesByID(chunkList); //sorting chunk list and writing files
                 while (!socket.isClosed()) {
                     listenForMessage(); //listening for messages while we are connected
                 }
@@ -80,7 +85,7 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                     message = objectInputStream.readObject();
                 }
                 System.out.println(chunkList);
-                writeFilesByID(chunkList);
+                //writeFilesByID(chunkList);
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
@@ -107,7 +112,7 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         return data;
     }
 
-    private synchronized void writeFilesByID(List<Value> chunkList){ //withdrawal and writing of all files received
+    /*private synchronized void writeFilesByID(List<Value> chunkList){ //withdrawal and writing of all files received
         String temp ="";
         List<String> fileIDs = new ArrayList<>();
         for (Value chunk : chunkList) { //separating chunks by file id
@@ -159,5 +164,5 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                 disconnect();
             }
         }
-    }
+    }*/
 }

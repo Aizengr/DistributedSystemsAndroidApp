@@ -19,10 +19,9 @@ public class ChatChannelActivity extends AppCompatActivity {
 
     private RecyclerView messageRecycler;
     private MessageAdapter messageAdapter;
-    private List<String> sentMessages;
-
-    private Queue<Value> conversationHistory;
+    private List<Value> conversationHistory;
     private Queue<Value> receivedMessages;
+    private List<Value> allMessagesList;
 
 
 
@@ -36,22 +35,28 @@ public class ChatChannelActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat_channel);
 
         Messenger mainMessenger = getIntent().getParcelableExtra("connectionHandler");
-        conversationHistory = getIntent().getParcelableExtra("convoHistory");
+        conversationHistory = (List<Value>) getIntent().getSerializableExtra("convoHistory");
         receivedMessages = getIntent().getParcelableExtra("receivedMessages");
+        String topic = getIntent().getStringExtra("topic");
+        Profile currentProfile = (Profile) getIntent().getSerializableExtra("profile");
+
+        allMessagesList = new ArrayList<>();
+
+        if(conversationHistory!= null){
+            for (Value value : conversationHistory){
+                allMessagesList.add(value);
+            }
+        }
+
 
         sendButton = findViewById(R.id.send_button);
         editTextMessage = findViewById(R.id.edit_message);
 
-        sentMessages = new ArrayList<>();
-
         messageRecycler = findViewById(R.id.recycler_chat);
-        messageAdapter = new MessageAdapter(this, sentMessages, conversationHistory);
+        messageAdapter = new MessageAdapter(this, currentProfile, allMessagesList);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
 
-        if (!conversationHistory.isEmpty()){
-
-        }
 
         sendButton.setOnClickListener(v -> {
             try {
@@ -60,19 +65,22 @@ public class ChatChannelActivity extends AppCompatActivity {
             } catch (Exception e) {
                 System.exit(1);
             }
+
             String messageToSend = editTextMessage.getText().toString();
+            Value messageValue = new Value(messageToSend, currentProfile, topic, "Publisher");
 
             Message msg = new Message();
-            msg.what = 4;
+            msg.what = 400;
             Bundle msgBundle = new Bundle();
             msg.setData(msgBundle);
-            msgBundle.putString("NEW_MESSAGE_TEXT", messageToSend);
+            msgBundle.putSerializable("NEW_MESSAGE_TEXT", messageValue);
+
             try {
                 mainMessenger.send(msg);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            sentMessages.add(messageToSend);
+            allMessagesList.add(messageValue);
             editTextMessage.setText("");
         });
 
