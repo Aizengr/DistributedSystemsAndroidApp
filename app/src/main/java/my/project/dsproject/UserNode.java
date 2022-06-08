@@ -25,7 +25,7 @@ public class UserNode implements Serializable {
     protected ObjectInputStream objectInputStream;
     protected Scanner inputScanner;
 
-    protected static final int[] portNumbers = new int[]{3000}; //for testing 1 broker only please keep 1 port and run the broker on the same
+    protected static final int[] portNumbers = new int[]{3000,4000,5000}; //for testing 1 broker only please keep 1 port and run the broker on the same
 
 
     protected static HashMap<Integer, String> portsAndAddresses = new HashMap<>(); //ports and addresses
@@ -77,7 +77,7 @@ public class UserNode implements Serializable {
         }
     }
 
-    protected String searchTopic(String topic) { //initial search
+    protected String searchTopic(String topic, String requestType) { //initial search
         while(true) {
             final Message msg = new Message();
             final Message progress = new Message();
@@ -92,7 +92,7 @@ public class UserNode implements Serializable {
                 break;
             } else if (portResponse != socket.getPort() || !addressResponse.equalsIgnoreCase(this.socket.getInetAddress().toString().substring(1))) { //if we are not connected to the right one, switch conn
                 System.out.println("SYSTEM: Switching Publisher connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
-                connect(portResponse, addressResponse, pubRequest);
+                connect(portResponse, addressResponse, requestType);
             } else {
                 msg.what = 100;
                 this.handler.sendMessage(msg);

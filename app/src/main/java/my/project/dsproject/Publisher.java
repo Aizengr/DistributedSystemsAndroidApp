@@ -31,7 +31,7 @@ public class Publisher extends UserNode implements Runnable, Serializable{
         initializeConnection();
         final Message msg = new Message();
         if (this.socket != null) {
-            topic = searchTopic(topic);
+            topic = searchTopic(topic, pubRequest);
             while (!socket.isClosed()) {
                 Value newMessage = checkForNewMessage();
                 if (newMessage!= null) {

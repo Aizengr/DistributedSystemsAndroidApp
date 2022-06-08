@@ -68,11 +68,9 @@ public class ChatChannelActivity extends AppCompatActivity {
             while(true){
                 if (!Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).isEmpty()){
                     synchronized (this){
-                        System.out.println("BEFORE: " + receivedMessages);
                         allMessagesList.add(MainActivity.allTopicReceivedMessages.get(topic).poll());
                         //RUN ON UI THREAD NEEDED FOR UPDATING CONTENT ON THE MAIN UI THREAD FROM THE EXECUTOR
                         runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
-                        System.out.println("AFTER: " + receivedMessages);
                     }
                 }
             }

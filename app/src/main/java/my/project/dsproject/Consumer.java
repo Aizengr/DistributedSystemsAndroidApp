@@ -38,7 +38,7 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         final Message msg = new Message();
         final Message inProgressMessage = new Message();
         if (this.socket != null) {
-            topic = searchTopic(topic);
+            topic = searchTopic(topic, conRequest);
             if (topic != null) {
                 inProgressMessage.what = 201;
                 this.handler.sendMessage(inProgressMessage);
