@@ -9,6 +9,7 @@ import java.util.Queue;
 
 import static java.lang.Integer.parseInt;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
@@ -50,7 +51,6 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                     } else {
                         synchronized (this) {
                             conversationHistory.add(message);
-                            System.out.println(message);
                         }
                     }
                 }
@@ -71,9 +71,15 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     private void listenForMessage(){ //main consumer functionality,listening for messages and files while connected as consumer to a specific topic
         try {
             Object message = objectInputStream.readObject();
+            Message msg = new Message();
             if (message instanceof Value && ((Value)message).getRequestType().equalsIgnoreCase("liveMessage")){ //live message case
                 System.out.println("SYSTEM: Receiving live chat message:" + message);
                 System.out.println(((Value) message).getProfile().getUsername() +":" + ((Value) message).getMessage());
+
+                synchronized (this) {
+                    receivedMessageQueue.add((Value)message);
+                }
+
             }
             else if (message instanceof Value && ((Value)message).getRequestType().equalsIgnoreCase("liveFile")){ //live file case
                 System.out.println("SYSTEM: " + ((Value) message).getUsername() + " has started file sharing. Filename: " + ((Value) message).getFilename());

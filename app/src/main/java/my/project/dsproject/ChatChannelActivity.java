@@ -3,6 +3,7 @@ package my.project.dsproject;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
@@ -13,7 +14,10 @@ import android.widget.EditText;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ChatChannelActivity extends AppCompatActivity {
 
@@ -22,7 +26,6 @@ public class ChatChannelActivity extends AppCompatActivity {
     private List<Value> conversationHistory;
     private Queue<Value> receivedMessages;
     private List<Value> allMessagesList;
-
 
 
     Button sendButton;
@@ -36,30 +39,48 @@ public class ChatChannelActivity extends AppCompatActivity {
 
         Messenger mainMessenger = getIntent().getParcelableExtra("connectionHandler");
         conversationHistory = (List<Value>) getIntent().getSerializableExtra("convoHistory");
-        receivedMessages = getIntent().getParcelableExtra("receivedMessages");
+        receivedMessages = (Queue<Value>) getIntent().getSerializableExtra("receivedMessages");
         String topic = getIntent().getStringExtra("topic");
         Profile currentProfile = (Profile) getIntent().getSerializableExtra("profile");
-
         allMessagesList = new ArrayList<>();
-
-        if(conversationHistory!= null){
-            for (Value value : conversationHistory){
-                allMessagesList.add(value);
-            }
-        }
 
 
         sendButton = findViewById(R.id.send_button);
         editTextMessage = findViewById(R.id.edit_message);
 
-        messageRecycler = findViewById(R.id.recycler_chat);
+        messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
         messageAdapter = new MessageAdapter(this, currentProfile, allMessagesList);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
 
+        if(conversationHistory!= null){
+            for (Value value : conversationHistory){
+                synchronized (this){
+                    allMessagesList.add(value);
+                    messageAdapter.notifyItemInserted(allMessagesList.size() - 1);
+                }
+            }
+        }
 
-        sendButton.setOnClickListener(v -> {
-            try {
+
+        ExecutorService checkForNewMessage = Executors.newSingleThreadExecutor(); //Executor thread to listen for new messages
+        checkForNewMessage.execute(() -> {
+            while(true){
+                if (!Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).isEmpty()){
+                    synchronized (this){
+                        System.out.println("BEFORE: " + receivedMessages);
+                        allMessagesList.add(MainActivity.allTopicReceivedMessages.get(topic).poll());
+                        //RUN ON UI THREAD NEEDED FOR UPDATING CONTENT ON THE MAIN UI THREAD FROM THE EXECUTOR
+                        runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
+                        System.out.println("AFTER: " + receivedMessages);
+                    }
+                }
+            }
+        });
+
+
+        sendButton.setOnClickListener(v -> { //on hitting send
+            try { //minimizing keyboard
                 InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
             } catch (Exception e) {
@@ -74,16 +95,18 @@ public class ChatChannelActivity extends AppCompatActivity {
             Bundle msgBundle = new Bundle();
             msg.setData(msgBundle);
             msgBundle.putSerializable("NEW_MESSAGE_TEXT", messageValue);
-
+            //getting message and sending it to the main handler
             try {
                 mainMessenger.send(msg);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            allMessagesList.add(messageValue);
+            synchronized (this){
+                allMessagesList.add(messageValue); //adding the message to the main message list
+                messageAdapter.notifyItemInserted(allMessagesList.size() - 1);
+            }
             editTextMessage.setText("");
         });
 
     }
-
 }

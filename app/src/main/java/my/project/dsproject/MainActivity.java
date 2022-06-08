@@ -2,7 +2,9 @@ package my.project.dsproject;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,7 +19,9 @@ import android.widget.TextView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int CONNECTION_IN_PROGRESS = 300;
 
     private static final int NEW_MESSAGE_TEXT_SEND = 400;
-    private static final int NEW_MESSAGE_TEXT_RECEIVED = 500;
 
     private static final int NEW_MESSAGE_FILE_SEND = 401;
     private static final int NEW_MESSAGE_FILE_RECEIVED = 501;
@@ -56,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private List<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
 
+    //HASHMAP TO KEEP ALL CONVERSATION RECEIVED MESSAGES FOR NOTIFICATIONS ON ANY CONVO NEW MESSAGE
+    public static Map<String, Queue<Value>> allTopicReceivedMessages;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         Button submitButton = findViewById(R.id.usernameSubmitBtrn);
         progressBar = findViewById(R.id.connectionProgressBar);
         progressBar.setVisibility(View.INVISIBLE);
+
+        allTopicReceivedMessages = new HashMap<>();
+
 
         submitButton.setOnClickListener(v -> {
 
@@ -81,9 +90,10 @@ public class MainActivity extends AppCompatActivity {
                 submitButton.setVisibility(v.INVISIBLE);
                 Profile profile = new Profile(username);
 
-                sentMessageQueue = new LinkedBlockingQueue<>();
-                conversationHistory = new ArrayList<>();
-                receivedMessageQueue = new LinkedBlockingQueue<>();
+                sentMessageQueue = new LinkedBlockingQueue<>(); //thread safe
+                conversationHistory = new ArrayList<>(); //NOT thread safe
+                receivedMessageQueue = new LinkedBlockingQueue<>(); //thread safe
+
 
                 ExecutorService serverConnection = Executors.newSingleThreadExecutor();
                 serverConnection.execute(() -> {
@@ -124,6 +134,12 @@ public class MainActivity extends AppCompatActivity {
                             }
                             if (msg.what == HISTORY_READY) {
                                 progressBar.setVisibility(View.INVISIBLE);
+
+                                //adding to the queue
+                                if (!allTopicReceivedMessages.containsKey(topic)){
+                                    allTopicReceivedMessages.put(topic, receivedMessageQueue);
+                                }
+                                //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
                                 Intent chatIntent = new Intent(MainActivity.this, ChatChannelActivity.class);
                                 chatIntent.putExtra("connectionHandler", new Messenger(this));
                                 chatIntent.putExtra("convoHistory", (Serializable) conversationHistory);
@@ -174,4 +190,5 @@ public class MainActivity extends AppCompatActivity {
         });
         alertDialog.show();
     }
+
 }

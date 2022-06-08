@@ -6,8 +6,6 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
 
 
     <application
@@ -36,6 +34,7 @@
             android:name=".ChatChannelActivity"
             android:exported="true">
         </activity>
+
     </application>
 
 </manifest>

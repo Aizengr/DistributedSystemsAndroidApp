@@ -106,7 +106,6 @@ public class UserNode implements Serializable {
         int response = 0;
         try {
             Value portCheck = new Value("portCheck",this.profile,topic,pubRequest);
-            System.out.println(portCheck);
             objectOutputStream.writeObject(portCheck);
             objectOutputStream.flush();
             response = (int)objectInputStream.readObject();
