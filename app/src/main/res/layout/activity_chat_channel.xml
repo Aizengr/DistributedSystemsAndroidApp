@@ -10,17 +10,51 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_chat"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="match_parent"
             android:theme="@style/Widget.AppCompat.Toolbar"
             app:popupTheme="@style/Theme.AppCompat.Light">
 
+            <TextView
+                android:id="@+id/topic_text"
+                android:layout_width="180dp"
+                android:layout_height="30dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="TOPIC"
+                android:textSize="25sp"
+                android:typeface="normal" />
+
+            <ImageButton
+
+                android:id="@+id/chats_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="90dp"
+                android:layout_marginEnd="35dp"
+                android:adjustViewBounds="true"
+                android:background="@null"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/chats" />
+
+            <ImageButton
+
+                android:id="@+id/profile_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="1dp"
+                android:adjustViewBounds="true"
+                android:background="@null"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/profile" />
+
+
         </androidx.appcompat.widget.Toolbar>
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -60,10 +94,11 @@
 
         <EditText
             android:id="@+id/edit_message"
-            android:layout_width="match_parent"
+            android:layout_width="190dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="5dp"
             android:layout_toStartOf="@+id/send_button"
             android:background="@android:color/transparent"
             android:hint="Enter Message"
@@ -79,6 +114,31 @@
             android:background="?attr/selectableItemBackground"
             android:text="Send"
             android:textColor="@color/black" />
+
+        <ImageButton
+            android:id="@+id/gallery_button"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="353dp"
+            android:adjustViewBounds="true"
+            android:background="@null"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/gallery" />
+
+        <ImageButton
+
+            android:id="@+id/camera_button"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_alignStart="@+id/edit_message"
+            android:layout_marginStart="-66dp"
+            android:layout_marginEnd="10dp"
+            android:adjustViewBounds="true"
+            android:background="@null"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/camera" />
+
 
     </RelativeLayout>
 

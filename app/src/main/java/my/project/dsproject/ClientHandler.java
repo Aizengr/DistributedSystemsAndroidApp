@@ -162,6 +162,7 @@ public class ClientHandler implements Runnable,Serializable {
     private void broadcastMessage(String topic, Value value){ //same as above for messages
         value.setRequestType("liveMessage");
         for (ClientHandler consumer : connectedConsumers){
+            System.out.println(consumer);
             if (!consumer.getUsername().equalsIgnoreCase(this.username)){
                 System.out.println("Broadcasting to topic: " + topic.toUpperCase() +
                         "for: " + consumer.username + " and value: " + value +

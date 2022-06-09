@@ -11,6 +11,7 @@ import android.os.RemoteException;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class ChatChannelActivity extends AppCompatActivity {
 
     Button sendButton;
     EditText editTextMessage;
+    TextView textViewTopic;
 
     @Override
 
@@ -47,6 +49,9 @@ public class ChatChannelActivity extends AppCompatActivity {
 
         sendButton = findViewById(R.id.send_button);
         editTextMessage = findViewById(R.id.edit_message);
+        textViewTopic = findViewById(R.id.topic_text);
+
+        textViewTopic.setText(topic);
 
         messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
         messageAdapter = new MessageAdapter(this, currentProfile, allMessagesList);
