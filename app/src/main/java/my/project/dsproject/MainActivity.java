@@ -96,8 +96,9 @@ public class MainActivity extends AppCompatActivity {
             if (usernameCheck(username)){
                 try { //minimizing keyboard
                     InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                    imm.hideSoftInputFromWindow(usernameEditText.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     System.exit(1);
                 }
                 submitButton.setVisibility(v.INVISIBLE);

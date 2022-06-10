@@ -12,4 +12,6 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="this_is_an_attachment_test_png">this_is_an_attachment_test.png</string>
+    <string name="play_button">play_button</string>
+    <string name="video_thumbnail">video_thumbnail</string>
 </resources>

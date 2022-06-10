@@ -268,10 +268,14 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
 
         void bind(Value message) {
-            videoPlayButton.setVisibility(View.VISIBLE);
-            videoImageView.setImageBitmap(ThumbnailUtils.createVideoThumbnail
+
+            Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail //retrieving and scaling the bitmap
                     (message.getMultimediaFile().getPath().toString(),
-                    MediaStore.Video.Thumbnails.MICRO_KIND));
+                            MediaStore.Video.Thumbnails.MICRO_KIND);
+            thumbnail = Bitmap.createScaledBitmap(thumbnail, 180, 130, true);
+
+            videoImageView.setImageBitmap(thumbnail);
+
         }
     }
 }

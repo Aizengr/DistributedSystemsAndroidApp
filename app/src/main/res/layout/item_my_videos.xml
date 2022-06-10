@@ -7,10 +7,21 @@
     android:layout_marginEnd="8dp"
     android:layout_marginTop="16dp">
 
+    <ImageButton
+        android:id="@+id/download_video_button_me"
+        android:layout_width="39dp"
+        android:layout_height="28dp"
+        android:layout_marginTop="48dp"
+        android:background="@null"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toStartOf="@+id/card_file_me"
+        app:layout_constraintTop_toTopOf="@+id/card_file_me"
+        app:srcCompat="@drawable/downloadbutton" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/card_file_me"
-        android:layout_width="153dp"
-        android:layout_height="110dp"
+        android:layout_width="180dp"
+        android:layout_height="130dp"
         android:layout_marginEnd="4dp"
         app:cardBackgroundColor="#774df2"
         app:cardCornerRadius="12dp"
@@ -21,42 +32,35 @@
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteY="0dp">
 
-        <LinearLayout
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_container_file_me"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="80dp">
-
-                <ImageView
-                    android:id="@+id/video_image_me"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@null"
-                    android:scaleType="fitXY"/>
-
-                <ImageButton
-                    android:id="@+id/video_play_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@null"
-                    android:scaleType="center"
-                    tools:srcCompat="@android:drawable/ic_media_play"/>
-            </FrameLayout>
-
             <ImageButton
-                android:id="@+id/download_video_button_me"
+                android:id="@+id/video_play_button"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginStart="52dp"
+                android:layout_marginTop="28dp"
+                android:background="@null"
+                android:contentDescription="@string/play_button"
+                android:scaleType="center"
+                app:layout_constraintStart_toStartOf="@+id/video_image_me"
+                app:layout_constraintTop_toTopOf="@+id/video_image_me"
+                tools:srcCompat="@android:drawable/ic_media_play" />
+
+            <ImageView
+                android:id="@+id/video_image_me"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@null"
-                android:scaleType="centerInside"
-                app:srcCompat="@android:drawable/stat_sys_download" />
+                android:contentDescription="@string/video_thumbnail"
+                android:scaleType="fitXY" />
 
-        </LinearLayout>
-
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>
 

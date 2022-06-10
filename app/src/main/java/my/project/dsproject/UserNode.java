@@ -76,26 +76,23 @@ public class UserNode implements Serializable {
     }
 
     protected String searchTopic(String topic, String requestType) { //initial search
-        while(true) {
-            final Message msg = new Message();
-            final Message progress = new Message();
-            progress.what = 201;
-            this.handler.sendMessage(progress);
-            int portResponse = checkBrokerPort(topic); //asking and receiving port number for correct Broker based on the topic
-            String addressResponse = checkBrokerAddress();
-            if (portResponse == 0 || addressResponse == null) {
-                msg.what = -100;
-                System.out.println("SYSTEM: There is no existing topic named: " + topic +". Here are available ones: " + availableTopics);
-                this.handler.sendMessage(msg);
-                break;
-            } else if (portResponse != socket.getPort() || !addressResponse.equalsIgnoreCase(this.socket.getInetAddress().toString().substring(1))) { //if we are not connected to the right one, switch conn
-                System.out.println("SYSTEM: Switching Publisher connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
-                connect(portResponse, addressResponse, requestType);
-            } else {
-                msg.what = 100;
-                this.handler.sendMessage(msg);
-                break;
-            }
+        final Message msg = new Message();
+        final Message progress = new Message();
+        progress.what = 201;
+        this.handler.sendMessage(progress);
+        int portResponse = checkBrokerPort(topic); //asking and receiving port number for correct Broker based on the topic
+        String addressResponse = checkBrokerAddress();
+        if (portResponse == 0 || addressResponse == null) {
+            msg.what = -100;
+            System.out.println(requestType + " ------ SYSTEM: There is no existing topic named: " + topic +". Here are available ones: " + availableTopics);
+            this.handler.sendMessage(msg);
+            return null;
+        } else if (portResponse != socket.getPort() || !addressResponse.equalsIgnoreCase(this.socket.getInetAddress().toString().substring(1))) { //if we are not connected to the right one, switch conn
+            System.out.println("SYSTEM: Switching Publisher connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
+            connect(portResponse, addressResponse, requestType);
+        } else {
+            msg.what = 100;
+            this.handler.sendMessage(msg);
         }
         return topic;
     }
