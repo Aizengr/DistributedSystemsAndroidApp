@@ -11,22 +11,40 @@ public class Value implements Serializable{    //serializable object for all kin
     private String requestType, fileID;
     private byte[] chunk;
     private int remainingChunks;
-    private final boolean fileSharing;
+    private boolean fileSharing = false;
+    private MultimediaFile multimediaFile;
+    String fileType;
 
 
-    public Value(String message, Profile profile, String requestType) {
-        this.message = message;
-        this.profile = profile;
-        this.requestType = requestType;
-        this.fileSharing = false;
-    }
 
     public Value(String message, Profile profile, String topic, String requestType) {
         this.message = message;
         this.profile = profile;
         this.topic = topic;
         this.requestType = requestType;
-        this.fileSharing = false;
+    }
+
+    public Value(String message, Profile profile, String requestType) {
+        this.message = message;
+        this.profile = profile;
+        this.requestType = requestType;
+    }
+
+    public Value(String message, Profile profile, String topic, String requestType, String fileType) {
+        this.message = message;
+        this.profile = profile;
+        this.topic = topic;
+        this.requestType = requestType;
+        this.fileType = fileType;
+    }
+
+
+    public Value(MultimediaFile file, Profile profile, String topic, String fileType){
+        this.multimediaFile = file;
+        this.profile = profile;
+        this.topic = topic;
+        this.fileType = fileType;
+        this.fileSharing = true;
     }
 
     public Value(String message, String chunkName, Profile profile, String topic, String fileID, int remainingChunks, byte[] chunk, String requestType){
@@ -60,6 +78,14 @@ public class Value implements Serializable{    //serializable object for all kin
         }
         string = string.concat("}");
         return string;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public MultimediaFile getMultimediaFile() {
+        return multimediaFile;
     }
 
 

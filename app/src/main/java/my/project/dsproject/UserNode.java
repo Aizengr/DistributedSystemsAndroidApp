@@ -25,7 +25,7 @@ public class UserNode implements Serializable {
     protected ObjectInputStream objectInputStream;
     protected Scanner inputScanner;
 
-    protected static final int[] portNumbers = new int[]{3000,4000,5000}; //for testing 1 broker only please keep 1 port and run the broker on the same
+    protected static final int[] portNumbers = new int[]{3000}; //for testing 1 broker only please keep 1 port and run the broker on the same
 
 
     protected static HashMap<Integer, String> portsAndAddresses = new HashMap<>(); //ports and addresses
@@ -105,7 +105,7 @@ public class UserNode implements Serializable {
     protected int checkBrokerPort(String topic){ //checking if we are on the correct broker
         int response = 0;
         try {
-            Value portCheck = new Value("portCheck",this.profile,topic,pubRequest);
+            Value portCheck = new Value("portCheck", this.profile, topic, pubRequest);
             objectOutputStream.writeObject(portCheck);
             objectOutputStream.flush();
             response = (int)objectInputStream.readObject();

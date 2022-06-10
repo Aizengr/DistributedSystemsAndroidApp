@@ -1,23 +1,30 @@
 package my.project.dsproject;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
-import java.util.Queue;
 
 public class MessageAdapter extends RecyclerView.Adapter{
 
     private static final int VIEW_TYPE_MESSAGE_SENT = 1;
     private static final int VIEW_TYPE_MESSAGE_RECEIVED = 2;
-    private static final int VIEW_TYPE_FILE_SENT = 3;
-    private static final int VIEW_TYPE_FILE_RECEIVED = 4;
+    private static final int VIEW_TYPE_IMAGE_SENT = 3;
+    private static final int VIEW_TYPE_IMAGE_RECEIVED = 4;
+    private static final int VIEW_TYPE_VIDEO_SENT = 5;
+    private static final int VIEW_TYPE_VIDEO_RECEIVED = 6;
+    private static final int VIEW_TYPE_ATTACHMENT_SENT = 7;
+    private static final int VIEW_TYPE_ATTACHMENT_RECEIVED = 8;
 
     private Context context;
     private List<Value> messagesList;
@@ -35,18 +42,39 @@ public class MessageAdapter extends RecyclerView.Adapter{
         return messagesList.size();
     }
 
-    // Determines the appropriate ViewType according to the sender of the message.
+    // Determines the appropriate ViewType according to the sender and type of the message
     @Override
     public int getItemViewType(int position) {
         Value message = (Value) messagesList.get(position);
 
-        if (message.getProfile().getUsername().equalsIgnoreCase(this.profile.getUsername())) {
-            // If the current user is the sender of the message
-            return VIEW_TYPE_MESSAGE_SENT;
+        if (message.getProfile().getUsername().equalsIgnoreCase(this.profile.getUsername())){
+            if (message.getFileType().equals("message")){
+                return VIEW_TYPE_MESSAGE_SENT;
+            }
+            else if (message.getFileType().equals("image")){
+                return VIEW_TYPE_IMAGE_SENT;
+            }
+            else if (message.getFileType().equals("video")){
+                return VIEW_TYPE_VIDEO_SENT;
+            }
+            else if (message.getFileType().equals("attachment")){
+                return VIEW_TYPE_ATTACHMENT_SENT;
+            }
         } else {
-            // If some other user sent the message
-            return VIEW_TYPE_MESSAGE_RECEIVED;
+            if (message.getFileType().equals("message")){
+                return VIEW_TYPE_MESSAGE_RECEIVED;
+            }
+            else if (message.getFileType().equals("image")){
+                return VIEW_TYPE_IMAGE_RECEIVED;
+            }
+            else if (message.getFileType().equals("video")){
+                return VIEW_TYPE_VIDEO_RECEIVED;
+            }
+            else if (message.getFileType().equals("attachment")){
+                return VIEW_TYPE_ATTACHMENT_RECEIVED;
+            }
         }
+        return 0;
     }
 
     // Inflates the appropriate layout according to the ViewType.
@@ -57,12 +85,44 @@ public class MessageAdapter extends RecyclerView.Adapter{
         if (viewType == VIEW_TYPE_MESSAGE_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_my_messages, parent, false);
-            return new MessageAdapter.SentHolder(view);
+            return new MessageAdapter.SentMessageHolder(view);
+
         } else if (viewType == VIEW_TYPE_MESSAGE_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_other_messages, parent, false);
-            return new MessageAdapter.ReceivedHolder(view);
+            return new MessageAdapter.ReceivedMessageHolder(view);
+
+        } else if (viewType == VIEW_TYPE_IMAGE_SENT) {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_my_images, parent, false);
+            return new MessageAdapter.SentImageHolder(view);
+
+//        } else if (viewType == VIEW_TYPE_IMAGE_RECEIVED) {
+//            view = LayoutInflater.from(parent.getContext())
+//                    .inflate(R.layout.item_other_images, parent, false);
+//            return new MessageAdapter.ReceivedImageHolder(view);
+//
+//        } else if (viewType == VIEW_TYPE_VIDEO_SENT) {
+//            view = LayoutInflater.from(parent.getContext())
+//                    .inflate(R.layout.item_my_videos, parent, false);
+//            return new MessageAdapter.SentVideoHolder(view);
+//
+//        } else if (viewType == VIEW_TYPE_VIDEO_RECEIVED) {
+//            view = LayoutInflater.from(parent.getContext())
+//                    .inflate(R.layout.item_other_videos, parent, false);
+//            return new MessageAdapter.ReceivedVideoHolder(view);
+//
+        } else if (viewType == VIEW_TYPE_ATTACHMENT_SENT) {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_my_files, parent, false);
+            return new MessageAdapter.SentAttachmentHolder(view);
         }
+
+//        } else if (viewType == VIEW_TYPE_ATTACHMENT_RECEIVED) {
+//            view = LayoutInflater.from(parent.getContext())
+//                    .inflate(R.layout.item_other_files, parent, false);
+//            return new MessageAdapter.ReceivedAttachmentHolder(view);
+//        }
 
         return null;
     }
@@ -74,20 +134,40 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
         switch (holder.getItemViewType()) {
             case VIEW_TYPE_MESSAGE_SENT:
-                ((MessageAdapter.SentHolder) holder).bind(message);
+                ((MessageAdapter.SentMessageHolder) holder).bind(message);
                 break;
             case VIEW_TYPE_MESSAGE_RECEIVED:
-                ((MessageAdapter.ReceivedHolder) holder).bind(message);
+                ((MessageAdapter.ReceivedMessageHolder) holder).bind(message);
+                break;
+            case VIEW_TYPE_IMAGE_SENT:
+                ((MessageAdapter.SentImageHolder) holder).bind(message);
+                break;
+//            case VIEW_TYPE_IMAGE_RECEIVED:
+//                ((MessageAdapter.ReceivedImageHolder) holder).bind(message);
+//                break;
+//            case VIEW_TYPE_VIDEO_SENT:
+//                ((MessageAdapter.SentVideoHolder) holder).bind(message);
+//                break;
+//            case VIEW_TYPE_VIDEO_RECEIVED:
+//                ((MessageAdapter.ReceivedVideoHolder) holder).bind(message);
+//                break;
+            case VIEW_TYPE_ATTACHMENT_SENT:
+               ((MessageAdapter.SentAttachmentHolder) holder).bind(message);
+               break;
+//            case VIEW_TYPE_ATTACHMENT_RECEIVED:
+//                ((MessageAdapter.ReceivedAttachmentHolder) holder).bind(message);
+//                break;
+
         }
     }
 
-    private class SentHolder extends RecyclerView.ViewHolder {
+    private class SentMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText;
 
-        SentHolder(View itemView) {
+        SentMessageHolder(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.text_message_me);
+            messageText = itemView.findViewById(R.id.text_message_me);
         }
 
         void bind(Value message) {
@@ -96,14 +176,14 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
     }
 
-    private class ReceivedHolder extends RecyclerView.ViewHolder {
+    private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText, nameText;
 
-        ReceivedHolder(View itemView) {
+        ReceivedMessageHolder(View itemView) {
             super(itemView);
 
-            messageText = (TextView) itemView.findViewById(R.id.text_message_other);
-            nameText = (TextView) itemView.findViewById(R.id.text_user_other);
+            messageText = itemView.findViewById(R.id.text_message_other);
+            nameText = itemView.findViewById(R.id.text_user_other);
         }
 
         void bind(Value message) {
@@ -111,6 +191,37 @@ public class MessageAdapter extends RecyclerView.Adapter{
             messageText.setText(message.getMessage());
 
             nameText.setText(message.getProfile().getUsername());
+
+        }
+    }
+
+    private class SentImageHolder extends RecyclerView.ViewHolder {
+        ImageView imageView;
+
+        SentImageHolder(View itemView) {
+            super(itemView);
+
+            imageView = itemView.findViewById(R.id.image_me);
+        }
+
+        void bind(Value message) {
+            Bitmap bitmap = BitmapFactory.decodeFile(message.getMultimediaFile().getPath().toString());
+            imageView.setImageBitmap(bitmap);
+
+        }
+    }
+
+    private class SentAttachmentHolder extends RecyclerView.ViewHolder {
+        TextView textView;
+
+        SentAttachmentHolder(View itemView) {
+            super(itemView);
+
+            textView = itemView.findViewById(R.id.text_attachment_me);
+        }
+
+        void bind(Value message) {
+            textView.setText("fakdsdlfak");
 
         }
     }

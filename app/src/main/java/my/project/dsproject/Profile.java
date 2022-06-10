@@ -22,7 +22,7 @@ public class Profile implements Serializable{
         userMultimediaFileMap = ArrayListMultimap.create();
     }
 
-    public void addFileToProfile(String fileName, MultimediaFile file){
+    public void addFileToUploadQueue(String fileName, MultimediaFile file){
 
         userMultimediaFileMap.put(fileName,file);
         addFileToUploadQueue(file);

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -24,7 +25,7 @@
                 android:layout_width="180dp"
                 android:layout_height="30dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="TOPIC"
+                android:text="Topic"
                 android:textSize="25sp"
                 android:typeface="normal" />
 
@@ -61,6 +62,7 @@
         android:id="@+id/recycler_chat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="16dp"
         app:layout_constrainedHeight="true"
         app:layout_constraintBottom_toTopOf="@+id/text_indicator"
@@ -81,20 +83,21 @@
         android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:layout_marginBottom="4dp"
         android:background="#e0e0e0"
-        app:layout_constraintBottom_toTopOf="@+id/layout_chatbox" />
+        app:layout_constraintBottom_toTopOf="@+id/layout_chatbox"
+        tools:layout_editor_absoluteX="0dp" />
 
     <RelativeLayout
         android:id="@+id/layout_chatbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent">
 
 
         <EditText
             android:id="@+id/edit_message"
-            android:layout_width="190dp"
+            android:layout_width="134dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
@@ -106,38 +109,76 @@
             android:maxLines="6"
             tools:ignore="Autofill" />
 
-        <Button
+        <ImageButton
             android:id="@+id/send_button"
-            android:layout_width="75dp"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentEnd="true"
             android:background="?attr/selectableItemBackground"
             android:text="Send"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            app:srcCompat="@android:drawable/ic_menu_send" />
 
         <ImageButton
-            android:id="@+id/gallery_button"
+            android:id="@+id/image_upload_button"
             android:layout_width="40dp"
             android:layout_height="50dp"
+            android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="353dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginTop="-1dp"
+            android:layout_marginEnd="197dp"
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/gallery" />
+            app:srcCompat="@drawable/images2" />
 
         <ImageButton
 
             android:id="@+id/camera_button"
             android:layout_width="40dp"
             android:layout_height="50dp"
-            android:layout_alignStart="@+id/edit_message"
-            android:layout_marginStart="-66dp"
-            android:layout_marginEnd="10dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="60dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="344dp"
+            android:adjustViewBounds="true"
+            android:background="@null"
+            android:contentDescription="camera"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/camera" />
+
+        <ImageButton
+
+            android:id="@+id/video_upload_button"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="-1dp"
+            android:layout_marginEnd="293dp"
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/camera" />
+            app:srcCompat="@drawable/videos" />
+
+        <ImageButton
+
+            android:id="@+id/attachment_upload_button"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="245dp"
+            android:adjustViewBounds="true"
+            android:background="@null"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/attachment2"
+            tools:ignore="TouchTargetSizeCheck" />
 
 
     </RelativeLayout>

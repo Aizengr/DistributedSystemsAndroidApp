@@ -5,7 +5,7 @@
       <map>
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/drawable/gradient_background.xml" value="0.1" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/drawable/progress.xml" value="0.1505" />
-        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_chat_channel.xml" value="0.7394023627519111" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_chat_channel.xml" value="0.5" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_loading.xml" value="0.215625" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_main.xml" value="0.5" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_profile.xml" value="0.40989583333333335" />
@@ -14,8 +14,17 @@
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/content_profile.xml" value="0.40989583333333335" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_chat_me.xml" value="0.529891304347826" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_chat_other.xml" value="0.5" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_my_files.xml" value="0.5" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_my_images.xml" value="0.3300555793073963" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_my_messages.xml" value="0.33" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_my_videos.xml" value="0.5" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_other_files.xml" value="0.5" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_other_images.xml" value="0.33" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_other_messages.xml" value="0.33106884057971014" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/item_other_videos.xml" value="0.5" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/topic_search.xml" value="0.46578947368421053" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/menu/activity_main_drawer.xml" value="0.32456140350877194" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/menu/profile.xml" value="0.32456140350877194" />
       </map>
     </option>
   </component>

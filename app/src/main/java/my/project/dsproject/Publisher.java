@@ -38,10 +38,9 @@ public class Publisher extends UserNode implements Runnable, Serializable{
                     if (!newMessage.isFile()){
                         push(newMessage);
                     }
-                    //ELSE IF IT IS FILE
-                    if (checkForNewContent()) { //if a new file is added to profile we also push it
-                        MultimediaFile uploadedFile = getNewContent();
-                        pushChunks(topic, uploadedFile);
+                    else {
+                        System.out.println(newMessage.getMultimediaFile());
+                        pushChunks(topic, newMessage.getMultimediaFile());
                     }
                 }
             }
@@ -75,13 +74,14 @@ public class Publisher extends UserNode implements Runnable, Serializable{
         }
     }
 
-    boolean checkForNewContent(){
+    boolean checkForNewUpload(){
         return this.profile.checkUploadQueueCount() > 0; //check if there are any items under upload Q 
     }
 
-    private MultimediaFile getNewContent(){ //gets first item in upload Q
+    private MultimediaFile getNewUpload(){ //gets first item in upload Q
         return this.profile.getFileFromUploadQueue();
     }
+
     public void push(Value value){ //initial push
 
         try {

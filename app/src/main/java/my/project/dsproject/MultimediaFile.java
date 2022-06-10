@@ -1,6 +1,10 @@
 package my.project.dsproject;
 
+import android.net.Uri;
+
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
@@ -21,6 +25,7 @@ public class MultimediaFile implements Serializable {
     private File multimediaFile;
     private int numberOfChunks;
     private static final int CHUNK_KB_SIZE = 512 * 1024;
+    private Uri uri;
 
 
     public MultimediaFile(String loc){
@@ -31,6 +36,7 @@ public class MultimediaFile implements Serializable {
         this.setFileType();
         this.fileID = UUID.randomUUID().toString(); //we implement file IDs to identify the chunks of the same file on consumer
     }
+
 
     private void setData() { //method for file attributes to set date (or more if needed)
         try {
@@ -52,6 +58,11 @@ public class MultimediaFile implements Serializable {
     public List<byte[]> splitInChunks(){ //method for splitting file in 512KB chunks with byte arrays
         try {
             byte[] multimediaFileByteArray = Files.readAllBytes(this.path);
+//            byte[] multimediaFileByteArray = new byte[(int)this.multimediaFile.length()];
+//            BufferedInputStream buf = new BufferedInputStream(new FileInputStream(this.multimediaFile));
+//            buf.read(multimediaFileByteArray, 0, multimediaFileByteArray.length);
+//            buf.close();
+
             List<byte[]> chunks = new ArrayList<>();
             for (int i=0; i < multimediaFileByteArray.length;){
                 byte[] chunk = new byte[Math.min(CHUNK_KB_SIZE, multimediaFileByteArray.length - i)];
@@ -63,7 +74,7 @@ public class MultimediaFile implements Serializable {
             }
             return chunks;
         } catch (IOException e){
-            System.out.println("Couldn't find filepath. Please try again by typing file.");
+            e.printStackTrace();
         }
         return null;
     }

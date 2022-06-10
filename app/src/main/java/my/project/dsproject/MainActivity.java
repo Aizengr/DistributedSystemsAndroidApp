@@ -45,8 +45,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int NEW_MESSAGE_TEXT_SEND = 400;
 
-    private static final int NEW_MESSAGE_FILE_SEND = 401;
+    private static final int NEW_MESSAGE_IMAGE_SEND = 401;
     private static final int NEW_MESSAGE_FILE_RECEIVED = 501;
+
+    private static final int NEW_MESSAGE_ATTACHMENT_SEND = 402;
+    private static final int NEW_MESSAGE_ATTACHMENT_RECEIVED = 502;
 
     private static final int HISTORY_READY = 200;
     private static final int HISTORY_IN_PROGRESS = 201;
@@ -131,6 +134,12 @@ public class MainActivity extends AppCompatActivity {
                             }
                             else if (msg.what == NEW_MESSAGE_TEXT_SEND){
                                 sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_TEXT"));
+                            }
+                            else if (msg.what == NEW_MESSAGE_IMAGE_SEND){
+                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_IMAGE_SENT"));
+                            }
+                            else if (msg.what == NEW_MESSAGE_ATTACHMENT_SEND){
+                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_ATTACHMENT_SENT"));
                             }
                             if (msg.what == HISTORY_READY) {
                                 progressBar.setVisibility(View.INVISIBLE);
