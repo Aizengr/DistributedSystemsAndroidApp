@@ -18,8 +18,6 @@ public class UserNode implements Serializable {
     protected String currentAddress;
     protected final String pubRequest = "Publisher";
     protected final String conRequest = "Consumer";
-    protected final String downloadPath = System.getProperty("user.dir")
-            .concat("\\DownloadedContent\\");
 
     protected ObjectOutputStream objectOutputStream;
     protected ObjectInputStream objectInputStream;

@@ -12,6 +12,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.Parcelable;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int NEW_MESSAGE_ATTACHMENT_SEND = 402;
     private static final int NEW_MESSAGE_ATTACHMENT_RECEIVED = 502;
+
+    private static final int NEW_MESSAGE_VIDEO_SEND = 403;
+    private static final int NEW_MESSAGE_VIDEO_RECEIVED = 503;
 
     private static final int HISTORY_READY = 200;
     private static final int HISTORY_IN_PROGRESS = 201;
@@ -90,6 +94,12 @@ public class MainActivity extends AppCompatActivity {
              String topic = topicEditText.getText().toString().trim();
 
             if (usernameCheck(username)){
+                try { //minimizing keyboard
+                    InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                } catch (Exception e) {
+                    System.exit(1);
+                }
                 submitButton.setVisibility(v.INVISIBLE);
                 Profile profile = new Profile(username);
 
@@ -141,10 +151,13 @@ public class MainActivity extends AppCompatActivity {
                             else if (msg.what == NEW_MESSAGE_ATTACHMENT_SEND){
                                 sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_ATTACHMENT_SENT"));
                             }
+                            else if (msg.what == NEW_MESSAGE_VIDEO_SEND){
+                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_VIDEO_SENT"));
+                            }
                             if (msg.what == HISTORY_READY) {
                                 progressBar.setVisibility(View.INVISIBLE);
 
-                                //adding to the queue
+                                //adding topic and its received messages Q to the hashmap that keeps all received messages
                                 if (!allTopicReceivedMessages.containsKey(topic)){
                                     allTopicReceivedMessages.put(topic, receivedMessageQueue);
                                 }

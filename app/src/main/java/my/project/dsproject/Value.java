@@ -48,13 +48,14 @@ public class Value implements Serializable{    //serializable object for all kin
         this.fileSharing = true;
     }
 
-    public Value(String message, String chunkName, Profile profile, String topic, String fileID, int remainingChunks, byte[] chunk, String requestType){
+    public Value(String message, String chunkName, Profile profile, String topic, String fileID, int remainingChunks, byte[] chunk, String requestType, String fileType){
         this.message = message;
         this.chunk = Arrays.copyOf(chunk,chunk.length);
         this.profile = profile;
         this.topic = topic;
         this.fileID = fileID;
         this.remainingChunks = remainingChunks;
+        this.fileType = fileType;
         this.filename = chunkName;
         this.requestType = requestType;
         this.fileSharing = true;

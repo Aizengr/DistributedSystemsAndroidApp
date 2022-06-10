@@ -3,16 +3,18 @@ package my.project.dsproject;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.w3c.dom.Text;
-
+import java.io.IOException;
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter{
@@ -29,12 +31,14 @@ public class MessageAdapter extends RecyclerView.Adapter{
     private Context context;
     private List<Value> messagesList;
     private Profile profile;
+    private ClickListener listener;
 
 
-    public MessageAdapter(Context cx, Profile profile,  List<Value> messagesList){
+    public MessageAdapter(Context cx, Profile profile,  List<Value> messagesList, ClickListener listener){
         this.context = cx;
         this.messagesList = messagesList;
         this.profile = profile;
+        this.listener = listener;
     }
 
     @Override
@@ -106,11 +110,11 @@ public class MessageAdapter extends RecyclerView.Adapter{
 //                    .inflate(R.layout.item_other_images, parent, false);
 //            return new MessageAdapter.ReceivedImageHolder(view);
 //
-//        } else if (viewType == VIEW_TYPE_VIDEO_SENT) {
-//            view = LayoutInflater.from(parent.getContext())
-//                    .inflate(R.layout.item_my_videos, parent, false);
-//            return new MessageAdapter.SentVideoHolder(view);
-//
+        } else if (viewType == VIEW_TYPE_VIDEO_SENT) {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_my_videos, parent, false);
+            return new MessageAdapter.SentVideoHolder(view);
+//      }
 //        } else if (viewType == VIEW_TYPE_VIDEO_RECEIVED) {
 //            view = LayoutInflater.from(parent.getContext())
 //                    .inflate(R.layout.item_other_videos, parent, false);
@@ -145,18 +149,41 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 break;
             case VIEW_TYPE_IMAGE_SENT:
                 ((MessageAdapter.SentImageHolder) holder).bind(message);
+
+                ((SentImageHolder) holder).imageView.setOnClickListener(v ->
+                        listener.onImageClicked(messagesList.get(position)));
                 break;
 //            case VIEW_TYPE_IMAGE_RECEIVED:
 //                ((MessageAdapter.ReceivedImageHolder) holder).bind(message);
 //                break;
-//            case VIEW_TYPE_VIDEO_SENT:
-//                ((MessageAdapter.SentVideoHolder) holder).bind(message);
-//                break;
-//            case VIEW_TYPE_VIDEO_RECEIVED:
+            case VIEW_TYPE_VIDEO_SENT:
+                ((MessageAdapter.SentVideoHolder) holder).bind(message);
+
+                ((SentVideoHolder) holder).videoPlayButton.setOnClickListener(v ->
+                        listener.onVideoClicked(messagesList.get(position)));
+
+                ((SentVideoHolder) holder).downloadButton.setOnClickListener(v ->
+                {
+                    try {
+                        listener.onDownloadClicked(messagesList.get(position));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                break;
+//           case VIEW_TYPE_VIDEO_RECEIVED:
 //                ((MessageAdapter.ReceivedVideoHolder) holder).bind(message);
 //                break;
             case VIEW_TYPE_ATTACHMENT_SENT:
                ((MessageAdapter.SentAttachmentHolder) holder).bind(message);
+                ((SentAttachmentHolder) holder).attachmentDownloadButton.setOnClickListener(v ->
+                {
+                    try {
+                        listener.onDownloadClicked(messagesList.get(position));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                break;
 //            case VIEW_TYPE_ATTACHMENT_RECEIVED:
 //                ((MessageAdapter.ReceivedAttachmentHolder) holder).bind(message);
@@ -185,15 +212,12 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
         ReceivedMessageHolder(View itemView) {
             super(itemView);
-
             messageText = itemView.findViewById(R.id.text_message_other);
             nameText = itemView.findViewById(R.id.text_user_other);
         }
 
         void bind(Value message) {
-
             messageText.setText(message.getMessage());
-
             nameText.setText(message.getProfile().getUsername());
 
         }
@@ -204,30 +228,50 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
         SentImageHolder(View itemView) {
             super(itemView);
-
             imageView = itemView.findViewById(R.id.image_me);
         }
 
         void bind(Value message) {
             Bitmap bitmap = BitmapFactory.decodeFile(message.getMultimediaFile().getPath().toString());
             imageView.setImageBitmap(bitmap);
+            imageView.setClickable(true);
 
         }
     }
 
     private class SentAttachmentHolder extends RecyclerView.ViewHolder {
         TextView textView;
+        ImageButton attachmentDownloadButton;
 
         SentAttachmentHolder(View itemView) {
             super(itemView);
-
             textView = itemView.findViewById(R.id.text_attachment_me);
+            attachmentDownloadButton =itemView.findViewById(R.id.download_attachment_button_me);
         }
 
         void bind(Value message) {
-            System.out.println("FILENAME: " + message.getFilename());
             textView.setText(message.getFilename());
+        }
+    }
 
+    private class SentVideoHolder extends RecyclerView.ViewHolder {
+
+        ImageView videoImageView;
+        ImageButton videoPlayButton;
+        ImageButton downloadButton;
+
+        SentVideoHolder(View itemView) {
+            super(itemView);
+            videoPlayButton = itemView.findViewById(R.id.video_play_button);
+            videoImageView = itemView.findViewById(R.id.video_image_me);
+            downloadButton = itemView.findViewById(R.id.download_video_button_me);
+        }
+
+        void bind(Value message) {
+            videoPlayButton.setVisibility(View.VISIBLE);
+            videoImageView.setImageBitmap(ThumbnailUtils.createVideoThumbnail
+                    (message.getMultimediaFile().getPath().toString(),
+                    MediaStore.Video.Thumbnails.MICRO_KIND));
         }
     }
 }

@@ -16,28 +16,40 @@
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:cardPreventCornerOverlap="false"
-        app:cardUseCompatPadding="true"
+        app:cardUseCompatPadding="false"
         app:layout_constraintEnd_toEndOf="parent"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteY="0dp">
 
         <LinearLayout
             android:id="@+id/layout_container_file_me"
-            android:layout_width="155dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/video_image_me"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@null"
-                android:scaleType="centerInside"
-                app:srcCompat="@android:drawable/ic_media_play" />
+                android:layout_height="80dp">
+
+                <ImageView
+                    android:id="@+id/video_image_me"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@null"
+                    android:scaleType="fitXY"/>
+
+                <ImageButton
+                    android:id="@+id/video_play_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@null"
+                    android:scaleType="center"
+                    tools:srcCompat="@android:drawable/ic_media_play"/>
+            </FrameLayout>
 
             <ImageButton
-                android:id="@+id/download_button_me"
-                android:layout_width="150dp"
+                android:id="@+id/download_video_button_me"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@null"
                 android:scaleType="centerInside"

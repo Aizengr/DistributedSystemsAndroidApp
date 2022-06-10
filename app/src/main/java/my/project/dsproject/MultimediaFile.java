@@ -19,6 +19,7 @@ public class MultimediaFile implements Serializable {
 
     private String dateCreated;
     private String fileName;
+    private String fileExt;
     private String fileType;
     private final String fileID;
     private Path path;
@@ -27,12 +28,13 @@ public class MultimediaFile implements Serializable {
     private static final int CHUNK_KB_SIZE = 512 * 1024;
 
 
-    public MultimediaFile(String loc){
+    public MultimediaFile(String loc, String fileType){
         this.path = Paths.get(loc);
         this.multimediaFile = new File(loc);
         this.fileName = multimediaFile.getName();
+        this.fileType = fileType;
         this.setData();
-        this.setFileType();
+        this.setFileExtension();
         this.fileID = UUID.randomUUID().toString(); //we implement file IDs to identify the chunks of the same file on consumer
     }
 
@@ -45,10 +47,10 @@ public class MultimediaFile implements Serializable {
         }
     }
 
-    private void setFileType(){ //method for managing filename string and getting file extension
+    private void setFileExtension(){ //method for managing filename string and getting file extension
         int index = this.fileName.lastIndexOf(".");
         if (index > 0 ){
-            this.fileType = fileName.substring(index + 1);
+            this.fileExt = fileName.substring(index + 1);
         }
     }
 
@@ -75,11 +77,13 @@ public class MultimediaFile implements Serializable {
         return this.fileName.getBytes();
     }
 
+    public String getFileExt() { return this.fileExt; }
+
     public String getFileName(){
         return this.fileName;
     }
 
-    private String getFileType(){
+    public String getFileType(){
         return this.fileType;
     }
 

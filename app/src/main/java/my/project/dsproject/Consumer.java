@@ -46,8 +46,7 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                 List<Value> chunkList = new ArrayList<>(); //separating chunks from live messages
                 for (Value message : data) {
                     if (message.isFile()) {
-                        //NEED TO DO WORK HERE IN CASE IT IS A FILE IN ORDER TO SEPARATE OR NOT FROM MESSAGES
-                        chunkList.add(message); //if its a file add it to the chunklist
+                        chunkList.add(message);
                     } else {
                         synchronized (this) {
                             conversationHistory.add(message);

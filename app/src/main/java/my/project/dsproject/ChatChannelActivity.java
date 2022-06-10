@@ -1,10 +1,7 @@
 package my.project.dsproject;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -13,9 +10,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Application;
-import android.app.Instrumentation;
-import android.content.DialogInterface;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -31,14 +27,20 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChatChannelActivity extends AppCompatActivity {
+public class ChatChannelActivity extends AppCompatActivity  implements ClickListener {
 
     private RecyclerView messageRecycler;
     private MessageAdapter messageAdapter;
@@ -47,8 +49,11 @@ public class ChatChannelActivity extends AppCompatActivity {
 
     public static final int PICK_IMAGE = 1000;
     public static final int PICK_ATTACHMENT = 2000;
+    public static final int PICK_VIDEO = 3000;
+
     public static final int PERMISSION_CODE_IMAGE = 100;
     public static final int PERMISSION_CODE_ATTACHMENT = 200;
+    public static final int PERMISSION_CODE_VIDEO = 300;
 
 
     ImageButton sendButton;
@@ -56,8 +61,10 @@ public class ChatChannelActivity extends AppCompatActivity {
     TextView textViewTopic;
     ImageButton imageUploadButton;
     ImageButton videoUploadButton;
+    ImageButton videoPlayButton;
     ImageButton attachmentUploadButton;
     ImageButton cameraButton;
+    VideoView videoView;
     Profile profile;
     String topic;
     Messenger mainMessenger;
@@ -83,12 +90,13 @@ public class ChatChannelActivity extends AppCompatActivity {
         imageUploadButton = findViewById(R.id.image_upload_button);
         videoUploadButton = findViewById(R.id.video_upload_button);
         attachmentUploadButton = findViewById(R.id.attachment_upload_button);
+        videoPlayButton = findViewById(R.id.video_play_button);
         cameraButton = findViewById(R.id.camera_button);
 
         textViewTopic.setText(topic);
 
         messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
-        messageAdapter = new MessageAdapter(this, profile, allMessagesList);
+        messageAdapter = new MessageAdapter(this, profile, allMessagesList, this);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
 
@@ -146,18 +154,25 @@ public class ChatChannelActivity extends AppCompatActivity {
             }
         });
 
-        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult( ActivityResult result ) {
+        videoUploadButton.setOnClickListener(v -> {
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    if (Environment.isExternalStorageManager())
-                        Toast.makeText(ChatChannelActivity.this,"We Have Permission",Toast.LENGTH_SHORT).show();
-                    else
-                        Toast.makeText(ChatChannelActivity.this, "You Denied the permission", Toast.LENGTH_SHORT).show();
-                } else {
+            if (checkPermission()) {
+                pickVideoFromFiles();
+            } else {
+                requestPermission(); // Request Permission
+            }
+        });
+
+        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            //RESULT ACTIVITY LAUNCHER TO MANAGE PERMISSION ISSUE WITH ANDROID 12 MANAGE STORAGE
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager())
+                    Toast.makeText(ChatChannelActivity.this,"We Have Permission",Toast.LENGTH_SHORT).show();
+                else
                     Toast.makeText(ChatChannelActivity.this, "You Denied the permission", Toast.LENGTH_SHORT).show();
-                }
+            } else {
+                Toast.makeText(ChatChannelActivity.this, "You Denied the permission", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -173,29 +188,12 @@ public class ChatChannelActivity extends AppCompatActivity {
         }
     }
 
-    private String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private void requestPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            new AlertDialog.Builder(ChatChannelActivity.this)
-                    .setTitle("Permission")
-                    .setMessage("Please give Storage permission.")
-                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        try {
-                            Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                            intent.addCategory("android.intent.category.DEFAULT");
-                            intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
-                            activityResultLauncher.launch(intent);
-                        } catch (Exception e) {
-                            Intent intent = new Intent();
-                            intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                            activityResultLauncher.launch(intent);
-                        }
-                    })
-                    .setCancelable(false)
-                    .show();
-        } else {
-            ActivityCompat.requestPermissions(ChatChannelActivity.this, permissions, 30);
-        }
+
+    private void pickVideoFromFiles(){
+        Intent intent = new Intent();
+        intent.setType("video/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), PICK_VIDEO);
     }
 
 
@@ -214,59 +212,37 @@ public class ChatChannelActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) { //handling result activities
+    public void onActivityResult(int requestCode, int resultCode, Intent data) { //handling ACTIVITY RESULTS
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
-            String uriString = data.getData().getPath();
-            String path = uriString.substring(uriString.indexOf(":")+1);
 
-            MultimediaFile image = new MultimediaFile(path);
-
-            Value imageValue = new Value(image, profile, topic, "image");
-
+            Value imageValue = createValueFromResult(data, "image");
             sendMessageToMainHandler(401, "NEW_MESSAGE_IMAGE_SENT", imageValue); //sending the file to the handler
+            updateRecyclerMessages(imageValue); //sending the file to the recycler
 
-            updateRecyclerMessages(imageValue);
         } else if (requestCode == PICK_ATTACHMENT && resultCode == RESULT_OK){
-            String uriString = data.getData().getPath();
-            String path = uriString.substring(uriString.indexOf(":")+1);
 
-
-
-            MultimediaFile file = new MultimediaFile(path);
-
-            Value fileValue = new Value(file, profile, topic, "attachment");
-
+            Value fileValue = createValueFromResult(data, "attachment");
             sendMessageToMainHandler(402, "NEW_MESSAGE_ATTACHMENT_SENT", fileValue); //sending the file to the handler
-
-            updateRecyclerMessages(fileValue);
+            updateRecyclerMessages(fileValue); //sending the file to the recycler
         }
+        else if (requestCode == PICK_VIDEO && resultCode == RESULT_OK){
+
+            Value videoValue = createValueFromResult(data, "video");
+            sendMessageToMainHandler(403, "NEW_MESSAGE_VIDEO_SENT", videoValue); //sending the file to the handler
+            updateRecyclerMessages(videoValue); //sending the file to the recycler
+        }
+
     }
 
-
-    @Override //handling runtime permission request codes
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        switch(requestCode){
-            case PERMISSION_CODE_IMAGE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    pickImageFromGallery();
-                }
-                else {
-                    Toast.makeText(this, "Permission denied...", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case PERMISSION_CODE_ATTACHMENT:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-                    pickAttachmentFromFiles();
-                }
-                else {
-                    Toast.makeText(this, "Permission denied...", Toast.LENGTH_SHORT).show();
-                }
-                break;
-        }
+    private Value createValueFromResult(Intent data, String fileType){
+        String uriString = data.getData().getPath();
+        String path = uriString.substring(uriString.indexOf(":")+1);
+        MultimediaFile file = new MultimediaFile(path, fileType);
+        Value value = new Value(file, profile, topic, fileType);
+        return value;
     }
+
 
     private void sendMessageToMainHandler(int code, String name, Value value){ //method to send to main handler
 
@@ -288,4 +264,73 @@ public class ChatChannelActivity extends AppCompatActivity {
             messageAdapter.notifyItemInserted(allMessagesList.size() - 1);
         }
     }
+
+    private String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private void requestPermission() { //PERMISSION RESULT ACTIVITY FOR MANAGE PERMISSIONS ACTIVATION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            new AlertDialog.Builder(ChatChannelActivity.this)
+                    .setTitle("Permission")
+                    .setMessage("Please give Storage permissions.")
+                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                        try {
+                            Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                            intent.addCategory("android.intent.category.DEFAULT");
+                            intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
+                            activityResultLauncher.launch(intent);
+                        } catch (Exception e) {
+                            Intent intent = new Intent();
+                            intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                            activityResultLauncher.launch(intent);
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        } else {
+            ActivityCompat.requestPermissions(ChatChannelActivity.this, permissions, 30);
+        }
+    }
+
+    @Override
+    public void onVideoClicked(Value value) { //viewing video on click
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(value.getMultimediaFile().getPath().toString()));
+        intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "video/*");
+        startActivity(intent);
+    }
+
+    @Override
+    public void onDownloadClicked(Value value)  { //when clicking download button on video or attachment
+
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        String filename = value.getFilename().substring(0,value.getFilename().indexOf("."));
+        String fileExt = value.getMultimediaFile().getFileExt();
+
+        Path newPath = Paths.get(path.getPath() + "/" + filename + "." + fileExt);
+        int counter = 1;
+        String existString;
+        while (Files.exists(newPath)){ //if file exists loop with a counter and change filename to filename%counter%.ext
+            System.out.println(newPath);
+            existString = String.format("(%s)", counter);
+            newPath = Paths.get(path.getPath() + "/" + filename + existString + "." + fileExt);
+            counter++;
+        }
+        File download = new File(String.valueOf(newPath)); //writing file
+        try {
+            download.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (download != null){
+            Toast.makeText(ChatChannelActivity.this, "Downloading File", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onImageClicked(Value value) { //viewing image on click
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(value.getMultimediaFile().getPath().toString()));
+        intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "image/*");
+        startActivity(intent);
+    }
+
+
 }

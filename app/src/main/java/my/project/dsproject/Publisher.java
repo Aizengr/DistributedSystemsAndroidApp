@@ -69,7 +69,7 @@ public class Publisher extends UserNode implements Runnable, Serializable{
             StringBuilder strB = new StringBuilder(file.getFileName());
             String chunkName = strB.insert(file.getFileName().lastIndexOf("."), String.format("_%s", i)).toString();
             chunk = new Value("SYSTEM: Sending file chunk", chunkName, this.profile, topic, fileID,
-                    file.getNumberOfChunks() - i - 1, chunkList.get(i), pubRequest);
+                    file.getNumberOfChunks() - i - 1, chunkList.get(i), pubRequest, file.getFileType());
             push(chunk);
         }
     }
