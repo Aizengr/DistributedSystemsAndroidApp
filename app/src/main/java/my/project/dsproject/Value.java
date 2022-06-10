@@ -41,6 +41,7 @@ public class Value implements Serializable{    //serializable object for all kin
 
     public Value(MultimediaFile file, Profile profile, String topic, String fileType){
         this.multimediaFile = file;
+        this.filename = this.multimediaFile.getFileName();
         this.profile = profile;
         this.topic = topic;
         this.fileType = fileType;

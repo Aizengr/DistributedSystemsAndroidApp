@@ -39,13 +39,17 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
     @Override
     public int getItemCount() {
-        return messagesList.size();
+
+        if (messagesList != null){
+            return messagesList.size();
+        }
+        return 0;
     }
 
     // Determines the appropriate ViewType according to the sender and type of the message
     @Override
     public int getItemViewType(int position) {
-        Value message = (Value) messagesList.get(position);
+        Value message = messagesList.get(position);
 
         if (message.getProfile().getUsername().equalsIgnoreCase(this.profile.getUsername())){
             if (message.getFileType().equals("message")){
@@ -221,7 +225,8 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
 
         void bind(Value message) {
-            textView.setText("fakdsdlfak");
+            System.out.println("FILENAME: " + message.getFilename());
+            textView.setText(message.getFilename());
 
         }
     }
