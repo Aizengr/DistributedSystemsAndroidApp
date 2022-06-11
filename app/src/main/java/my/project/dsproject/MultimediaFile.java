@@ -20,7 +20,7 @@ public class MultimediaFile implements Serializable {
     private String dateCreated;
     private String fileName;
     private String fileExt;
-    private String fileType;
+    private final String fileType;
     private final String fileID;
     private Path path;
     private File multimediaFile;
@@ -36,6 +36,16 @@ public class MultimediaFile implements Serializable {
         this.setData();
         this.setFileExtension();
         this.fileID = UUID.randomUUID().toString(); //we implement file IDs to identify the chunks of the same file on consumer
+    }
+
+    public  MultimediaFile(File file, String fileType){
+        this.path = Paths.get(file.getPath());
+        this.multimediaFile = file;
+        this.fileName = multimediaFile.getName();
+        this.fileType = fileType;
+        this.setData();
+        this.setFileExtension();
+        this.fileID = UUID.randomUUID().toString();
     }
 
     private void setData() { //method for file attributes to set date (or more if needed)
@@ -91,9 +101,7 @@ public class MultimediaFile implements Serializable {
         return this.dateCreated;
     }
 
-    public File getMultimediaFile(){
-        return this.multimediaFile;
-    }
+    public File getFile() {return this.multimediaFile;}
 
     public Path getPath(){
         return this.path;

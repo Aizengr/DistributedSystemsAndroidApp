@@ -1,22 +1,20 @@
 package my.project.dsproject;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 
 import static java.lang.Integer.parseInt;
 
-import android.os.Bundle;
+
 import android.os.Handler;
 import android.os.Message;
 
 public class Consumer extends UserNode implements Runnable,Serializable {
 
     private String topic;
-    private List<Value> conversationHistory;
+    private final List<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
 
     public Consumer(Profile profile, Handler handler, List<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic){
@@ -43,19 +41,31 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                 inProgressMessage.what = 201;
                 this.handler.sendMessage(inProgressMessage);
                 List<Value> data = getConversationData(topic); //getting conversation data at first
-                List<Value> chunkList = new ArrayList<>(); //separating chunks from live messages
-                for (Value message : data) {
-                    if (message.isFile()) {
-                        chunkList.add(message);
+
+                for (int i = 0; i < data.size(); i++){ // for correct order
+                    List<Value> chunkList = new ArrayList<>();
+                    Value currentValue = data.get(i);
+                    int totalChunks = 0;
+                    if (currentValue.isFile()) { //if it is file we gather all chunks and sort them before adding them
+                        totalChunks = currentValue.getRemainingChunks(); //to history
+                        for (int j = i; j <= i + totalChunks; j++){ //nested for loop in order to keep the correct order
+                            chunkList.add(data.get(j));
+                        }
+                        Value[] sortedChunks = sortChunks(chunkList);
+                        for (Value value: sortedChunks){
+                            synchronized (this) {
+                                conversationHistory.add(value);
+                            }
+                        }
                     } else {
-                        synchronized (this) {
-                            conversationHistory.add(message);
+                        synchronized (this) { //if it is a message we add it to history
+                            conversationHistory.add(currentValue);
                         }
                     }
+                    i += totalChunks;
                 }
                 msg.what = 200;
                 this.handler.sendMessage(msg);
-                //writeFilesByID(chunkList); //sorting chunk list and writing files
                 while (!socket.isClosed()) {
                     listenForMessage(); //listening for messages while we are connected
                 }
@@ -70,7 +80,6 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     private void listenForMessage(){ //main consumer functionality,listening for messages and files while connected as consumer to a specific topic
         try {
             Object message = objectInputStream.readObject();
-            Message msg = new Message();
             if (message instanceof Value && ((Value)message).getRequestType().equalsIgnoreCase("liveMessage")){ //live message case
                 System.out.println("SYSTEM: Receiving live chat message:" + message);
                 System.out.println(((Value) message).getProfile().getUsername() +":" + ((Value) message).getMessage());
@@ -89,14 +98,15 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                     if (incomingChunks == 0){break;}
                     message = objectInputStream.readObject();
                 }
-                System.out.println(chunkList);
-                //writeFilesByID(chunkList);
+                Value[] sortedFileChunks = sortChunks(chunkList);
+                receivedMessageQueue.addAll(Arrays.asList(sortedFileChunks));
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
             disconnect();
         }
     }
+
 
 
     private List<Value> getConversationData(String topic){ //getting conversation history once we connect to the topic
@@ -117,57 +127,14 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         return data;
     }
 
-    /*private synchronized void writeFilesByID(List<Value> chunkList){ //withdrawal and writing of all files received
-        String temp ="";
-        List<String> fileIDs = new ArrayList<>();
-        for (Value chunk : chunkList) { //separating chunks by file id
-            System.out.println("Chunklist");
-            System.out.println(chunk);
-            if (!chunk.getFileID().equalsIgnoreCase(temp)) {
-                fileIDs.add(chunk.getFileID());
-                temp = chunk.getFileID();
-            }
+
+    private Value[] sortChunks(List<Value> chunkList){
+        Value[] sortedChunks = new Value[chunkList.size()];
+        for (Value chunk : chunkList){ //and sorting them according to the number on the chunk name
+            int index = parseInt(chunk.getFilename().substring(chunk.getFilename().lastIndexOf("_") + 1, chunk.getFilename().indexOf(".")));
+            sortedChunks[index] = chunk;
         }
-        for (String id : fileIDs){ //for each id we keep the chunks in a list
-            List <Value> fileList = new ArrayList<>();
-            for (Value chunk : chunkList){
-                System.out.println("fileList");
-                System.out.println(chunk);
-                if (id.equalsIgnoreCase(chunk.getFileID())){
-                    fileList.add(chunk);
-                }
-            }
-            System.out.println(fileList);
-            Value[] sortedChunks = new Value[fileList.size()];
-            for (Value chunk : fileList){ //and sorting them according to the number on the chunk name
-                int index = parseInt(chunk.getFilename().substring(chunk.getFilename().indexOf("_") + 1, chunk.getFilename().indexOf(".")));
-                sortedChunks[index] = chunk;
-            }
-            String filename = sortedChunks[0].getFilename().substring(0, sortedChunks[0].getFilename().indexOf("_"));
-            String fileExt = sortedChunks[0].getFilename().substring(sortedChunks[0].getFilename().indexOf("."));
-            Path path = Paths.get(downloadPath + filename + fileExt);
-            int counter = 1;
-            String existString;
-            while (Files.exists(path)){ //if file exists loop with a counter and change filename to filename%counter%.ext
-                System.out.println(path);
-                existString = String.format("(%s)", counter);
-                path = Paths.get(downloadPath + filename + existString + fileExt);
-                counter++;
-            }
-            File download = new File(String.valueOf(path)); //writing file
-            System.out.println("SYSTEM: Downloading file at: " + path);
-            try {
-                FileOutputStream os = new FileOutputStream(download);
-                for (Value chunk : sortedChunks) {
-                    System.out.println("sortedList");
-                    System.out.println(chunk);
-                    os.write(chunk.getChunk());
-                }
-                os.close();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-                disconnect();
-            }
-        }
-    }*/
+       return sortedChunks;
+    }
+
 }

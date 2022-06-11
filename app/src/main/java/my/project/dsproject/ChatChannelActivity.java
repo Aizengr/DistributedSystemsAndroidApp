@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,9 +47,7 @@ import java.util.concurrent.Executors;
 
 public class ChatChannelActivity extends AppCompatActivity  implements ClickListener {
 
-    private RecyclerView messageRecycler;
     private MessageAdapter messageAdapter;
-    private List<Value> conversationHistory; //history list
     private List<Value> allMessagesList; //all message list that is used by Recycler view to update the UI with any new message
 
     public static final int PICK_IMAGE = 1000;
@@ -82,11 +81,12 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         setContentView(R.layout.activity_chat_channel);
 
         mainMessenger = getIntent().getParcelableExtra("connectionHandler");
-        conversationHistory = (List<Value>) getIntent().getSerializableExtra("convoHistory");
         topic = getIntent().getStringExtra("topic");
         profile = (Profile) getIntent().getSerializableExtra("profile");
         allMessagesList = new ArrayList<>();
 
+        //history list
+        List<Value> conversationHistory = MainActivity.allTopicHistories.get(topic);
 
         sendButton = findViewById(R.id.send_button);
         editTextMessage = findViewById(R.id.edit_message);
@@ -99,14 +99,46 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
 
         textViewTopic.setText(topic);
 
-        messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
+        RecyclerView messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
         messageAdapter = new MessageAdapter(this, profile, allMessagesList, this);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
 
-        if(conversationHistory!= null){
-            for (Value value : conversationHistory){
-                updateRecyclerMessages(value);
+        System.out.println("TEST" + conversationHistory);
+        synchronized (this) {
+            if (conversationHistory != null) {
+                for (int i = 0; i < conversationHistory.size(); i++) {
+                    System.out.println("FROM HISTORY -- "+ conversationHistory.get(i));
+                    int totalChunks = 0;
+                    if (conversationHistory.get(i).getChunk() == null) { //if chunk is null it is a message
+                        updateRecyclerMessages(conversationHistory.get(i));
+                    } else { //in case it is a chunk we need to gather all file chunks to a new value and pass it to the recycler
+                        Value currentValue = conversationHistory.get(i);
+                        System.out.println("FROM ACTIVITY - " + currentValue);
+                        totalChunks = currentValue.getRemainingChunks();
+                        String filename = currentValue.getFilename().substring(0, currentValue.getFilename().lastIndexOf("_"))
+                                + currentValue.getFileExt();
+                        String fileType = currentValue.getFileType();
+
+                        File outputFile = new File(getCacheDir(), filename);
+                        List <byte[]> fileByteList = new ArrayList<>();
+                        for (int j = i, index = 0; j <= i + totalChunks; j++, index++) {
+                            fileByteList.add(conversationHistory.get(j).getChunk());
+                        }
+                        try {
+                            FileOutputStream fos = new FileOutputStream(outputFile);
+                            for (byte[] b : fileByteList){
+                                fos.write(b);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        MultimediaFile outputMultimediaFile = new MultimediaFile(outputFile, fileType);
+                        Value newValue = new Value(outputMultimediaFile, currentValue.getProfile(), currentValue.getTopic(), fileType);
+                        updateRecyclerMessages(newValue);
+                    }
+                    i += totalChunks; //need to skip already checked chunks//need to skip already checked chunks
+                }
             }
         }
 
@@ -114,11 +146,39 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         checkForNewMessage.execute(() -> {
             while(true){
                 if (!Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).isEmpty()){
-                    synchronized (this){
-                        allMessagesList.add(MainActivity.allTopicReceivedMessages.get(topic).poll());
-                        //RUN ON UI THREAD NEEDED FOR UPDATING CONTENT ON THE MAIN UI THREAD FROM THE EXECUTOR
-                        runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
+                    Value current = Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).peek();
+                    assert current != null;
+                    if (current.isFile()){
+                        int totalChunks = current.getRemainingChunks();
+                        List <byte[]> fileByteList = new ArrayList<>();
+                        for (int i = 0; i <= totalChunks; i++){
+                            fileByteList.add(Objects.requireNonNull(Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).poll()).getChunk());
+                        }
+                        String filename = current.getFilename().substring(0, current.getFilename().lastIndexOf("_"))
+                                + current.getFileExt();
+                        String fileType = current.getFileType();
+
+                        File outputFile = new File(getCacheDir(), filename);
+                        try {
+                            FileOutputStream fos = new FileOutputStream(outputFile);
+                            for (byte[] b : fileByteList){
+                                fos.write(b);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        MultimediaFile outputMultimediaFile = new MultimediaFile(outputFile, fileType);
+                        Value newValue = new Value(outputMultimediaFile, current.getProfile(), current.getTopic(), fileType);
+                        synchronized (this){
+                            allMessagesList.add(newValue);
+                        }
+                    } else {
+                        synchronized (this){
+                            allMessagesList.add(Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).poll());
+                        }
                     }
+                    runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
                 }
             }
         });
@@ -193,11 +253,8 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
     }
 
     private boolean checkCameraPermission(){
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED){
-            return true;
-        }
-        return false;
+        return ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     private boolean checkPermission() {
@@ -289,8 +346,7 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         String uriString = data.getData().getPath();
         String path = uriString.substring(uriString.indexOf(":")+1);
         MultimediaFile file = new MultimediaFile(path, fileType);
-        Value value = new Value(file, profile, topic, fileType);
-        return value;
+        return new Value(file, profile, topic, fileType);
     }
 
     private Value createValueFromCameraImageResult(Intent data){
@@ -299,29 +355,22 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         String newImageName = "photo.jpg";
         Bitmap photo = (Bitmap) data.getExtras().get("data"); //retrieving bitmap
         File f = new File(getApplicationContext().getCacheDir(), "photo.jpg"); //creating a new file
-        try {
-            f.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        Bitmap bitmap = photo; //copying bitmap into the file
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, bos);
-        byte[] bitmapdata = bos.toByteArray();
+        photo.compress(Bitmap.CompressFormat.PNG, 0, bos);
+        byte[] bitMapData = bos.toByteArray();
 
-        FileOutputStream fos = null;
+        FileOutputStream fos;
         try {
             fos = new FileOutputStream(f);
-            fos.write(bitmapdata);
+            fos.write(bitMapData);
             fos.flush();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         MultimediaFile file = new MultimediaFile(getApplicationContext().getCacheDir().getPath() + "/" + newImageName, "image");
-        Value value = new Value(file, profile, topic, "image");
-        return value;
+        return new Value(file, profile, topic, "image");
     }
 
     private Value createValueFromCameraVideoResult(Intent data) {
@@ -329,8 +378,7 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         String path = getRealPathFromURI(ChatChannelActivity.this,uri);
         System.out.println(path);
         MultimediaFile file = new MultimediaFile(path, "video");
-        Value value = new Value(file, profile, topic, "video");
-        return value;
+        return new Value(file, profile, topic, "video");
     }
 
     private void sendMessageToMainHandler(int code, String name, Value value){ //method to send to main handler
@@ -409,6 +457,7 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
 
     @Override
     public void onVideoClicked(Value value) { //viewing video on click
+        System.out.println(value.getMultimediaFile().getPath().toString());
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(value.getMultimediaFile().getPath().toString()));
         intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "video/*");
         startActivity(intent);
@@ -431,8 +480,12 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
             counter++;
         }
         File download = new File(String.valueOf(newPath)); //writing file
+        FileOutputStream fos;
         try {
-            download.createNewFile();
+            fos = new FileOutputStream(download);
+            fos.write(Files.readAllBytes(Paths.get(value.getMultimediaFile().getFile().getPath())));
+            fos.flush();
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -441,6 +494,8 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
 
     @Override
     public void onImageClicked(Value value) { //viewing image on click
+        System.out.println(value.getMultimediaFile().getPath().toString());
+
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(value.getMultimediaFile().getPath().toString()));
         intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "image/*");
         startActivity(intent);

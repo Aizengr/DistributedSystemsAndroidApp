@@ -18,6 +18,8 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,20 +49,17 @@ public class MainActivity extends AppCompatActivity {
     private static final int NEW_MESSAGE_TEXT_SEND = 400;
 
     private static final int NEW_MESSAGE_IMAGE_SEND = 401;
-    private static final int NEW_MESSAGE_FILE_RECEIVED = 501;
 
     private static final int NEW_MESSAGE_ATTACHMENT_SEND = 402;
-    private static final int NEW_MESSAGE_ATTACHMENT_RECEIVED = 502;
 
     private static final int NEW_MESSAGE_VIDEO_SEND = 403;
-    private static final int NEW_MESSAGE_VIDEO_RECEIVED = 503;
+
 
     private static final int HISTORY_READY = 200;
     private static final int HISTORY_IN_PROGRESS = 201;
 
     private static final int CONNECTION_FAILED = -1000;
 
-    private boolean history_ready = false;
 
     private Queue<Value> sentMessageQueue;
     private List<Value> conversationHistory;
@@ -68,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     //HASHMAP TO KEEP ALL CONVERSATION RECEIVED MESSAGES FOR NOTIFICATIONS ON ANY CONVO NEW MESSAGE
     public static Map<String, Queue<Value>> allTopicReceivedMessages;
+    public static Map<String, List<Value>> allTopicHistories;
 
 
     @Override
@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.INVISIBLE);
 
         allTopicReceivedMessages = new HashMap<>();
+        allTopicHistories = new HashMap<>();
 
 
         submitButton.setOnClickListener(v -> {
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                     System.exit(1);
                 }
-                submitButton.setVisibility(v.INVISIBLE);
+                submitButton.setVisibility(View.INVISIBLE);
                 Profile profile = new Profile(username);
 
                 sentMessageQueue = new LinkedBlockingQueue<>(); //thread safe
@@ -110,13 +111,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                 ExecutorService serverConnection = Executors.newSingleThreadExecutor();
-                serverConnection.execute(() -> {
+                serverConnection.execute(() -> { //executor thread to run publisher and consumer
 
                     @SuppressLint("HandlerLeak")
                     Handler connectionHandler= new Handler(getMainLooper()){
                         @SuppressLint("SetTextI18n")
                         @Override
-                        public void handleMessage(Message msg){
+                        public void handleMessage(Message msg){ //main handler for managing messages from the thread
                             if (msg.what == TOPIC_NOT_FOUND){
                                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                                 alertDialog.setTitle("Invalid topic");
@@ -162,10 +163,11 @@ public class MainActivity extends AppCompatActivity {
                                 if (!allTopicReceivedMessages.containsKey(topic)){
                                     allTopicReceivedMessages.put(topic, receivedMessageQueue);
                                 }
+                                //adding history to the static hashmp to retreive it from the second intent
+                                allTopicHistories.put(topic, conversationHistory);
                                 //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
                                 Intent chatIntent = new Intent(MainActivity.this, ChatChannelActivity.class);
                                 chatIntent.putExtra("connectionHandler", new Messenger(this));
-                                chatIntent.putExtra("convoHistory", (Serializable) conversationHistory);
                                 chatIntent.putExtra("profile", profile);
                                 chatIntent.putExtra("topic", topic);
                                 startActivity(chatIntent);
@@ -177,15 +179,15 @@ public class MainActivity extends AppCompatActivity {
                     Publisher newPub = new Publisher(profile, connectionHandler, sentMessageQueue, topic);
                     Thread pubThread = new Thread(newPub);
                     Thread conThread = new Thread(newCon);
-                    conThread.start();
+                    conThread.start(); //starting our threads
                     pubThread.start();
 
                 });
             }
             else {
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                alertDialog.setTitle("Invalid credentials");
-                alertDialog.setMessage("Provided username is invalid. Please make sure that your username is between 5 to 10 characters and not blank.");
+                alertDialog.setTitle("Invalid credentials"); //username check
+                alertDialog.setMessage("Provided username is invalid. Please make sure that your username is between 5 to 16 characters and not blank.");
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                         (dialog, which) -> dialog.dismiss());
                 alertDialog.show();
@@ -194,15 +196,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private static boolean usernameCheck(String username) {
+    private static boolean usernameCheck(String username) { //just a username check for length
 
-        if (username.length() < 5 || username.length() > 10) {
+        if (username.length() < 5 || username.length() > 16) {
             return false;
         }
         return true;
     }
 
-    private void connectionFailureAlert(){
+    private void connectionFailureAlert(){ //in case broker connection is not happening
 
         AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
         alertDialog.setTitle("Server connection error");

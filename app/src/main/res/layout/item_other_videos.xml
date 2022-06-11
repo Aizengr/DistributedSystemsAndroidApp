@@ -17,7 +17,7 @@
         tools:ignore="MissingConstraints" />
 
     <ImageButton
-        android:id="@+id/download_video_button_me"
+        android:id="@+id/download_video_button_other"
         android:layout_width="39dp"
         android:layout_height="28dp"
         android:layout_marginTop="48dp"
@@ -40,7 +40,7 @@
         tools:ignore="MissingConstraints">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_container_file_me"
+            android:id="@+id/layout_container_file_other"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
@@ -54,12 +54,12 @@
                 android:background="@null"
                 android:contentDescription="@string/play_button"
                 android:scaleType="center"
-                app:layout_constraintStart_toStartOf="@+id/video_image_me"
-                app:layout_constraintTop_toTopOf="@+id/video_image_me"
+                app:layout_constraintStart_toStartOf="@+id/video_image_other"
+                app:layout_constraintTop_toTopOf="@+id/video_image_other"
                 tools:srcCompat="@android:drawable/ic_media_play" />
 
             <ImageView
-                android:id="@+id/video_image_me"
+                android:id="@+id/video_image_other"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@null"

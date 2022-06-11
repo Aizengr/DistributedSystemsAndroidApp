@@ -1,4 +1,6 @@
 package my.project.dsproject;
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -127,13 +129,7 @@ public class Value implements Serializable{    //serializable object for all kin
 
     public String getFileID(){return this.fileID;}
 
-    public void setFilename(String filename){
-        this.filename = filename;
-    }
-
-    public void setChunk(byte[] chunk) {
-        this.chunk = chunk;
-    }
+    public String getFileExt(){ return this.filename.substring(this.filename.lastIndexOf("."));}
 
     public byte[] getChunk() {
         return chunk;
