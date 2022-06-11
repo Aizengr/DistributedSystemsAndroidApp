@@ -5,11 +5,15 @@ import java.net.Socket;
 import java.util.*;
 import static java.lang.Integer.parseInt;
 
+import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-public class UserNode implements Serializable {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class UserNode extends Application implements Serializable {
 
     protected Socket socket;
     protected Profile profile;
@@ -24,7 +28,6 @@ public class UserNode implements Serializable {
     protected Scanner inputScanner;
 
     protected static final int[] portNumbers = new int[]{3000}; //for testing 1 broker only please keep 1 port and run the broker on the same
-
 
     protected static HashMap<Integer, String> portsAndAddresses = new HashMap<>(); //ports and addresses
     protected static HashMap<Integer, Integer> availableBrokers = new HashMap<>(); //ids, ports

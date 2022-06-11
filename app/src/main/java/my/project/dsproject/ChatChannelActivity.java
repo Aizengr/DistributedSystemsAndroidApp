@@ -107,37 +107,8 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         System.out.println("TEST" + conversationHistory);
         synchronized (this) {
             if (conversationHistory != null) {
-                for (int i = 0; i < conversationHistory.size(); i++) {
-                    System.out.println("FROM HISTORY -- "+ conversationHistory.get(i));
-                    int totalChunks = 0;
-                    if (conversationHistory.get(i).getChunk() == null) { //if chunk is null it is a message
-                        updateRecyclerMessages(conversationHistory.get(i));
-                    } else { //in case it is a chunk we need to gather all file chunks to a new value and pass it to the recycler
-                        Value currentValue = conversationHistory.get(i);
-                        System.out.println("FROM ACTIVITY - " + currentValue);
-                        totalChunks = currentValue.getRemainingChunks();
-                        String filename = currentValue.getFilename().substring(0, currentValue.getFilename().lastIndexOf("_"))
-                                + currentValue.getFileExt();
-                        String fileType = currentValue.getFileType();
-
-                        File outputFile = new File(getCacheDir(), filename);
-                        List <byte[]> fileByteList = new ArrayList<>();
-                        for (int j = i, index = 0; j <= i + totalChunks; j++, index++) {
-                            fileByteList.add(conversationHistory.get(j).getChunk());
-                        }
-                        try {
-                            FileOutputStream fos = new FileOutputStream(outputFile);
-                            for (byte[] b : fileByteList){
-                                fos.write(b);
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        MultimediaFile outputMultimediaFile = new MultimediaFile(outputFile, fileType);
-                        Value newValue = new Value(outputMultimediaFile, currentValue.getProfile(), currentValue.getTopic(), fileType);
-                        updateRecyclerMessages(newValue);
-                    }
-                    i += totalChunks; //need to skip already checked chunks//need to skip already checked chunks
+                for( Value value : conversationHistory){
+                    updateRecyclerMessages(value);
                 }
             }
         }
@@ -146,37 +117,8 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         checkForNewMessage.execute(() -> {
             while(true){
                 if (!Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).isEmpty()){
-                    Value current = Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).peek();
-                    assert current != null;
-                    if (current.isFile()){
-                        int totalChunks = current.getRemainingChunks();
-                        List <byte[]> fileByteList = new ArrayList<>();
-                        for (int i = 0; i <= totalChunks; i++){
-                            fileByteList.add(Objects.requireNonNull(Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).poll()).getChunk());
-                        }
-                        String filename = current.getFilename().substring(0, current.getFilename().lastIndexOf("_"))
-                                + current.getFileExt();
-                        String fileType = current.getFileType();
-
-                        File outputFile = new File(getCacheDir(), filename);
-                        try {
-                            FileOutputStream fos = new FileOutputStream(outputFile);
-                            for (byte[] b : fileByteList){
-                                fos.write(b);
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        MultimediaFile outputMultimediaFile = new MultimediaFile(outputFile, fileType);
-                        Value newValue = new Value(outputMultimediaFile, current.getProfile(), current.getTopic(), fileType);
-                        synchronized (this){
-                            allMessagesList.add(newValue);
-                        }
-                    } else {
-                        synchronized (this){
-                            allMessagesList.add(Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).poll());
-                        }
+                    synchronized (this){
+                        allMessagesList.add(Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).poll());
                     }
                     runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
                 }
@@ -491,6 +433,7 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         }
         Toast.makeText(ChatChannelActivity.this, "Downloading File", Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     public void onImageClicked(Value value) { //viewing image on click

@@ -1,13 +1,17 @@
 package my.project.dsproject;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 
 import static java.lang.Integer.parseInt;
 
 
+import android.content.Context;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 
@@ -16,14 +20,17 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     private String topic;
     private final List<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
+    private Context context;
 
-    public Consumer(Profile profile, Handler handler, List<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic){
+    public Consumer(Profile profile, Handler handler, List<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic, Context cx){
         super(profile, handler);
+        this.context = cx;
         this.conversationHistory = conversationHistory;
         this.receivedMessageQueue = receivedMessageQueue;
         this.topic = topic;
         aliveConsumerConnections.add(this);
     }
+
 
     private void initializeConnection(){
         connect(currentPort, currentAddress, conRequest);
@@ -41,21 +48,20 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                 inProgressMessage.what = 201;
                 this.handler.sendMessage(inProgressMessage);
                 List<Value> data = getConversationData(topic); //getting conversation data at first
+                Value[] sortedData = sortHistory(data); //sorting them based on message
 
-                for (int i = 0; i < data.size(); i++){ // for correct order
+                for (int i = 0; i < sortedData.length; i++){
                     List<Value> chunkList = new ArrayList<>();
-                    Value currentValue = data.get(i);
+                    Value currentValue = sortedData[i];
                     int totalChunks = 0;
                     if (currentValue.isFile()) { //if it is file we gather all chunks and sort them before adding them
                         totalChunks = currentValue.getRemainingChunks(); //to history
                         for (int j = i; j <= i + totalChunks; j++){ //nested for loop in order to keep the correct order
                             chunkList.add(data.get(j));
                         }
-                        Value[] sortedChunks = sortChunks(chunkList);
-                        for (Value value: sortedChunks){
-                            synchronized (this) {
-                                conversationHistory.add(value);
-                            }
+                        Value file = chunksToSingleValue(chunkList);
+                        synchronized (this) {
+                            conversationHistory.add(file);
                         }
                     } else {
                         synchronized (this) { //if it is a message we add it to history
@@ -75,6 +81,24 @@ public class Consumer extends UserNode implements Runnable,Serializable {
             msg.what = -100;
             this.handler.sendMessage(msg);
         }
+    }
+
+    private Value[] sortHistory(List<Value> data){ //sorting history based on the number of the message
+        Value[] sorted = new Value[data.size()];
+        for (Value value : data){
+            int index = parseInt(value.getMessage());
+            sorted[index] = value;
+        }
+        return sorted;
+    }
+
+    private Value[] sortReceivedFile(List<Value> chunkList){
+        Value[] sortedChunks = new Value[chunkList.size()];
+        for (Value chunk : chunkList){ //and sorting them according to the number on the chunk name
+            int index = parseInt(chunk.getFilename().substring(chunk.getFilename().lastIndexOf("_") + 1, chunk.getFilename().indexOf(".")));
+            sortedChunks[index] = chunk;
+        }
+        return sortedChunks;
     }
 
     private void listenForMessage(){ //main consumer functionality,listening for messages and files while connected as consumer to a specific topic
@@ -98,8 +122,10 @@ public class Consumer extends UserNode implements Runnable,Serializable {
                     if (incomingChunks == 0){break;}
                     message = objectInputStream.readObject();
                 }
-                Value[] sortedFileChunks = sortChunks(chunkList);
-                receivedMessageQueue.addAll(Arrays.asList(sortedFileChunks));
+                Value[] sortedFileChunks = sortReceivedFile(chunkList);
+                List<Value> sortedList = Arrays.asList(sortedFileChunks);
+                Value newFile = chunksToSingleValue(sortedList);
+                receivedMessageQueue.add(newFile);
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
@@ -107,6 +133,36 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         }
     }
 
+    private Value chunksToSingleValue(List<Value> chunkList){
+        Value file;
+        Value firstChunk = chunkList.get(0);
+        String filename = firstChunk.getFilename().substring(0, firstChunk.getFilename().lastIndexOf("_"))
+                + firstChunk.getFileExt();
+        String fileType = firstChunk.getFileType();
+
+        File outputFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(outputFile);
+            for (Value value: chunkList){
+                System.out.println(value);
+                fos.write(value.getChunk());
+            }
+            fos.flush();
+            fos.close();
+            outputFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        MultimediaFile outputMultimediaFile = new MultimediaFile(outputFile, fileType);
+        file = new Value(outputMultimediaFile, firstChunk.getProfile(), firstChunk.getTopic(), fileType);
+        try {
+            System.out.println(Files.size(file.getMultimediaFile().getPath()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
 
 
     private List<Value> getConversationData(String topic){ //getting conversation history once we connect to the topic
@@ -127,14 +183,5 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         return data;
     }
 
-
-    private Value[] sortChunks(List<Value> chunkList){
-        Value[] sortedChunks = new Value[chunkList.size()];
-        for (Value chunk : chunkList){ //and sorting them according to the number on the chunk name
-            int index = parseInt(chunk.getFilename().substring(chunk.getFilename().lastIndexOf("_") + 1, chunk.getFilename().indexOf(".")));
-            sortedChunks[index] = chunk;
-        }
-       return sortedChunks;
-    }
 
 }

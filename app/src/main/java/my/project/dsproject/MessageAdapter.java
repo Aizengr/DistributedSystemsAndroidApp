@@ -369,7 +369,6 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 thumbnail = ThumbnailUtils.createVideoThumbnail //retrieving and scaling the bitmap
                         (message.getMultimediaFile().getPath().toString(),
                                 MediaStore.Video.Thumbnails.MICRO_KIND);
-                thumbnail = Bitmap.createScaledBitmap(thumbnail, 180, 130, true);
                 videoImageView.setImageBitmap(thumbnail);
             } catch (NullPointerException e){
                 e.printStackTrace();

@@ -190,11 +190,14 @@ public class ClientHandler implements Runnable,Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        int messageCounter = 0;
         for (Map.Entry<String,Value> entry : messagesMap.entries()){
             if (entry.getKey().equalsIgnoreCase(topic)){
                 try {
+                    entry.getValue().setMessage(Integer.toString(messageCounter));
                     System.out.println("SYSTEM: Pulling: "  + entry.getValue());
                     out.writeObject(entry.getValue());
+                    messageCounter++;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

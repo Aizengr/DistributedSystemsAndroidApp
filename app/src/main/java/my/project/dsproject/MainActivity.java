@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     };
 
-                    Consumer newCon = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic);
+                    Consumer newCon = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic, this);
                     Publisher newPub = new Publisher(profile, connectionHandler, sentMessageQueue, topic);
                     Thread pubThread = new Thread(newPub);
                     Thread conThread = new Thread(newCon);
