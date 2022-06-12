@@ -53,19 +53,11 @@ public class ClientHandler implements Runnable,Serializable {
         if(currentMessage!= null){
             if(currentMessage.getMessage().equalsIgnoreCase("portCheck")){
                 System.out.println(streamObject);
-                while (correctPort <= 0) { //while provided topic does not exist, we continuously ask for a valid one from the component
-                    System.out.println(correctAddress + " " + correctPort);
-                    correctPort = Broker.searchBrokerPort(currentMessage);
-                    correctAddress = Broker.getAddress(correctPort);
-                    sendCorrectBrokerPort(correctPort); //sending correct Broker port
-                    sendCorrectBrokerAddress(correctAddress); //sending correct Broker address
-                    if (correctPort == this.socket.getLocalPort()){
-                        break;
-                    }
-                    else {
-                        currentMessage = (Value)readStream();
-                    }
-                }
+                System.out.println(correctAddress + " " + correctPort);
+                correctPort = Broker.searchBrokerPort(currentMessage);
+                correctAddress = Broker.getAddress(correctPort);
+                sendCorrectBrokerPort(correctPort); //sending correct Broker port
+                sendCorrectBrokerAddress(correctAddress); //sending correct Broker address
             }
         }
         if (correctPort == this.socket.getLocalPort() && Objects.equals(correctAddress, Broker.getAddress(this.socket.getLocalPort()))) { //if we are on the correct broker

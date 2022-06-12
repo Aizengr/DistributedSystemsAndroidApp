@@ -13,7 +13,7 @@ import android.os.Message;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class UserNode extends Application implements Serializable {
+public class UserNode implements Serializable {
 
     protected Socket socket;
     protected Profile profile;
@@ -27,7 +27,7 @@ public class UserNode extends Application implements Serializable {
     protected ObjectInputStream objectInputStream;
     protected Scanner inputScanner;
 
-    protected static final int[] portNumbers = new int[]{3000}; //for testing 1 broker only please keep 1 port and run the broker on the same
+    protected static final int[] portNumbers = new int[]{3000,4000,5000}; //for testing 1 broker only please keep 1 port and run the broker on the same
 
     protected static HashMap<Integer, String> portsAndAddresses = new HashMap<>(); //ports and addresses
     protected static HashMap<Integer, Integer> availableBrokers = new HashMap<>(); //ids, ports
@@ -83,7 +83,7 @@ public class UserNode extends Application implements Serializable {
         final Message progress = new Message();
         progress.what = 201;
         this.handler.sendMessage(progress);
-        int portResponse = checkBrokerPort(topic); //asking and receiving port number for correct Broker based on the topic
+        int portResponse = checkBrokerPort(topic, requestType); //asking and receiving port number for correct Broker based on the topic
         String addressResponse = checkBrokerAddress();
         if (portResponse == 0 || addressResponse == null) {
             msg.what = -100;
@@ -91,7 +91,7 @@ public class UserNode extends Application implements Serializable {
             this.handler.sendMessage(msg);
             return null;
         } else if (portResponse != socket.getPort() || !addressResponse.equalsIgnoreCase(this.socket.getInetAddress().toString().substring(1))) { //if we are not connected to the right one, switch conn
-            System.out.println("SYSTEM: Switching Publisher connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
+            System.out.println("SYSTEM: Switching " + requestType + " connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
             connect(portResponse, addressResponse, requestType);
         } else {
             msg.what = 100;
@@ -100,10 +100,10 @@ public class UserNode extends Application implements Serializable {
         return topic;
     }
 
-    protected int checkBrokerPort(String topic){ //checking if we are on the correct broker
+    protected int checkBrokerPort(String topic, String requestType){ //checking if we are on the correct broker
         int response = 0;
         try {
-            Value portCheck = new Value("portCheck", this.profile, topic, pubRequest);
+            Value portCheck = new Value("portCheck", this.profile, topic, requestType);
             objectOutputStream.writeObject(portCheck);
             objectOutputStream.flush();
             response = (int)objectInputStream.readObject();
