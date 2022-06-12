@@ -11,12 +11,12 @@
         android:id="@+id/topicText"
         android:layout_width="182dp"
         android:layout_height="39dp"
-        android:layout_marginTop="344dp"
+        android:layout_marginTop="324dp"
         android:ems="10"
         android:hint="topic"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.135"
+        app:layout_constraintHorizontal_bias="0.132"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,13 +24,13 @@
         android:id="@+id/topicTextView"
         android:layout_width="309dp"
         android:layout_height="61dp"
-        android:layout_marginTop="268dp"
+        android:layout_marginTop="252dp"
         android:fontFamily="sans-serif-medium"
         android:text="Please enter conversation topic:"
         android:textSize="20sp"
         android:typeface="normal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.303"
+        app:layout_constraintHorizontal_bias="0.333"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -41,35 +41,35 @@
         android:text="Submit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.462"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/usernameText"
-        app:layout_constraintVertical_bias="0.732" />
+        app:layout_constraintVertical_bias="0.523" />
 
     <EditText
         android:id="@+id/usernameText"
         android:layout_width="182dp"
         android:layout_height="39dp"
-        android:layout_marginTop="192dp"
+        android:layout_marginTop="188dp"
         android:ems="10"
         android:hint="username"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.135"
+        app:layout_constraintHorizontal_bias="0.132"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/usernameTextView"
-        android:layout_width="309dp"
-        android:layout_height="61dp"
-        android:layout_marginTop="116dp"
+        android:layout_width="310dp"
+        android:layout_height="33dp"
+        android:layout_marginTop="140dp"
         android:fontFamily="sans-serif-medium"
         android:text="Please enter your username:"
         android:textSize="20sp"
         android:typeface="normal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.303"
+        app:layout_constraintHorizontal_bias="0.337"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -80,9 +80,9 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.469"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.696" />
+        app:layout_constraintVertical_bias="0.531" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

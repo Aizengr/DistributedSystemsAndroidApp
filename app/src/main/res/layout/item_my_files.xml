@@ -7,6 +7,18 @@
     android:layout_marginEnd="8dp"
     android:layout_marginTop="16dp">
 
+    <ImageButton
+        android:id="@+id/download_attachment_button_me"
+        android:layout_width="39dp"
+        android:layout_height="28dp"
+        android:layout_marginTop="21dp"
+        android:layout_marginEnd="36dp"
+        android:background="@null"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toStartOf="@+id/card_file_attachment_me"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/downloadbutton" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/card_file_attachment_me"
         android:layout_width="wrap_content"
@@ -30,7 +42,7 @@
 
 
             <ImageButton
-                android:id="@+id/download_attachment_button_me"
+                android:id="@+id/image_attachment_me"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@null"

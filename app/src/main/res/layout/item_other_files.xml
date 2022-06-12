@@ -14,8 +14,21 @@
         android:text="Konstantinos"
         android:textSize="16sp"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="9dp"
+        tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp" />
+
+
+    <ImageButton
+        android:id="@+id/download_attachment_button_other"
+        android:layout_width="39dp"
+        android:layout_height="28dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="32dp"
+        android:background="@null"
+        android:scaleType="centerInside"
+        app:layout_constraintStart_toEndOf="@+id/image_attachment_other"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/downloadbutton" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_message_other"
@@ -45,19 +58,18 @@
         android:id="@+id/text_attachment_other"
         android:layout_width="103dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="0dp"
+        android:layout_marginStart="4dp"
         android:text="@string/this_is_an_attachment_test_png"
         android:textAlignment="center"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/download_attachment_button_other" />
+        app:layout_constraintTop_toBottomOf="@+id/image_attachment_other" />
 
     <ImageButton
-        android:id="@+id/download_attachment_button_other"
+        android:id="@+id/image_attachment_other"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="28dp"
+        android:layout_marginStart="24dp"
         android:background="@null"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_user_other"

@@ -20,38 +20,35 @@
             android:theme="@style/Widget.AppCompat.Toolbar"
             app:popupTheme="@style/Theme.AppCompat.Light">
 
-            <TextView
-                android:id="@+id/topic_text"
-                android:layout_width="180dp"
-                android:layout_height="30dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Topic"
-                android:textSize="25sp"
-                android:typeface="normal" />
-
-            <ImageButton
-
-                android:id="@+id/chats_button"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="90dp"
-                android:layout_marginEnd="35dp"
-                android:adjustViewBounds="true"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/chats" />
-
             <ImageButton
 
                 android:id="@+id/profile_button"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="2dp"
+                android:layout_marginStart="1dp"
                 android:layout_marginEnd="1dp"
                 android:adjustViewBounds="true"
                 android:background="@null"
-                android:scaleType="centerInside"
+                android:scaleType="fitXY"
                 app:srcCompat="@drawable/profile" />
+
+            <TextView
+                android:id="@+id/topic_text"
+                android:layout_width="150dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="30dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Topic"
+                android:textColor="@color/white"
+                android:textSize="25sp"
+                android:typeface="normal" />
+
+            <SearchView
+                android:layout_marginStart="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:queryHint="Search new topic"/>
+
 
 
         </androidx.appcompat.widget.Toolbar>
@@ -104,7 +101,7 @@
             android:layout_marginEnd="5dp"
             android:layout_toStartOf="@+id/send_button"
             android:background="@android:color/transparent"
-            android:hint="Enter Message"
+            android:hint="@string/enter_message"
             android:inputType="text"
             android:maxLines="6"
             tools:ignore="Autofill" />
@@ -115,7 +112,7 @@
             android:layout_height="50dp"
             android:layout_alignParentEnd="true"
             android:background="?attr/selectableItemBackground"
-            android:text="Send"
+            android:text="@string/send"
             android:textColor="@color/black"
             app:srcCompat="@android:drawable/ic_menu_send" />
 
@@ -127,7 +124,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginStart="80dp"
             android:layout_marginTop="-1dp"
-            android:layout_marginEnd="197dp"
+            android:layout_marginEnd="243dp"
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
@@ -157,8 +154,8 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="-1dp"
-            android:layout_marginEnd="293dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="295dp"
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
@@ -172,8 +169,8 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="0dp"
-            android:layout_marginEnd="245dp"
+            android:layout_marginTop="-1dp"
+            android:layout_marginEnd="196dp"
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
