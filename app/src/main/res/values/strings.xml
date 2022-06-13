@@ -16,4 +16,11 @@
     <string name="video_thumbnail">video_thumbnail</string>
     <string name="send">Send</string>
     <string name="enter_message">Enter Message</string>
+    <string name="topic">Topic</string>
+    <string name="attachmentupload">attachmentUpload</string>
+    <string name="videoupload">videoUpload</string>
+    <string name="camera">camera</string>
+    <string name="imageupload">imageUpload</string>
+    <string name="sendbutton">sendButton</string>
+    <string name="profile">profile</string>
 </resources>

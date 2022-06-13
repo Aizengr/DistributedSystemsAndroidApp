@@ -4,6 +4,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.ProgressDialog;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,14 +32,14 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,10 +48,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChatChannelActivity extends AppCompatActivity  implements ClickListener {
+public class ChatChannelActivity<Public> extends AppCompatActivity  implements ClickListener {
 
     private MessageAdapter messageAdapter;
     private List<Value> allMessagesList; //all message list that is used by Recycler view to update the UI with any new message
@@ -58,7 +65,7 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
     public static final int CAPTURE_VIDEO = 3001;
 
     private static final int CAMERA_PERMISSION_CODE = 1;
-
+    private ActivityResultLauncher<Intent> activityResultLauncher;
 
     ImageButton sendButton;
     EditText editTextMessage;
@@ -71,7 +78,8 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
     Profile profile;
     String topic;
     Messenger mainMessenger;
-    private ActivityResultLauncher<Intent> activityResultLauncher;
+    SearchView topicSearch;
+    ProgressBar searchProgressBar;
 
 
     @Override
@@ -79,14 +87,18 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_channel);
-
+        Objects.requireNonNull(getSupportActionBar()).hide();
         mainMessenger = getIntent().getParcelableExtra("connectionHandler");
         topic = getIntent().getStringExtra("topic");
         profile = (Profile) getIntent().getSerializableExtra("profile");
         allMessagesList = new ArrayList<>();
+        String [] subs = new String[profile.getUserSubscribedConversations().size()];
+        profile.getUserSubscribedConversations().toArray(subs);
+
 
         //history list
-        List<Value> conversationHistory = MainActivity.allTopicHistories.get(topic);
+        Queue<Value> conversationHistory = MainActivity.conversationHistory;
+
 
         sendButton = findViewById(R.id.send_button);
         editTextMessage = findViewById(R.id.edit_message);
@@ -96,29 +108,29 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         attachmentUploadButton = findViewById(R.id.attachment_upload_button);
         videoPlayButton = findViewById(R.id.video_play_button);
         cameraButton = findViewById(R.id.camera_button);
-
+        topicSearch = findViewById(R.id.topic_search);
         textViewTopic.setText(topic);
+
+        searchProgressBar = findViewById(R.id.searchProgressBar);
+        searchProgressBar.setVisibility(View.INVISIBLE);
 
         RecyclerView messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
         messageAdapter = new MessageAdapter(this, profile, allMessagesList, this);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
 
-        System.out.println("TEST" + conversationHistory);
-        synchronized (this) {
-            if (conversationHistory != null) {
-                for( Value value : conversationHistory){
-                    updateRecyclerMessages(value);
-                }
-            }
+        while(conversationHistory.peek()!=null){
+            System.out.println(conversationHistory.peek());
+            updateRecyclerMessages(conversationHistory.poll());
         }
+
 
         ExecutorService checkForNewMessage = Executors.newSingleThreadExecutor(); //Executor thread to listen for new messages
         checkForNewMessage.execute(() -> {
             while(true){
-                if (!Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).isEmpty()){
+                if (!MainActivity.receivedMessageQueue.isEmpty()){
                     synchronized (this){
-                        allMessagesList.add(Objects.requireNonNull(MainActivity.allTopicReceivedMessages.get(topic)).poll());
+                        allMessagesList.add(MainActivity.receivedMessageQueue.poll());
                     }
                     runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
                 }
@@ -129,20 +141,22 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         sendButton.setOnClickListener(v -> { //on hitting send
             try { //minimizing keyboard
                 InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(editTextMessage.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
             }
-
             String messageToSend = editTextMessage.getText().toString();
-            Value messageValue = new Value(messageToSend, profile, topic, "Publisher", "message");
 
-            sendMessageToMainHandler(400, "NEW_MESSAGE_TEXT", messageValue);
+            if (!messageToSend.equals("")){
+                Value messageValue = new Value(messageToSend, profile, topic, "Publisher", "message");
 
-            updateRecyclerMessages(messageValue);
+                sendMessageToMainHandler(400, "NEW_MESSAGE_TEXT", messageValue);
 
-            editTextMessage.setText("");
+                updateRecyclerMessages(messageValue);
+
+                editTextMessage.setText("");
+            }
         });
 
         imageUploadButton.setOnClickListener(v -> { //image upload button on click
@@ -179,16 +193,41 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
             }
         });
 
+        topicSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() { //search section listener
+            @Override
+            public boolean onQueryTextSubmit(String query) { //in case of submit we send the message to main handler
+                if (!query.equals(topic)){
+                    searchProgressBar.setVisibility(View.VISIBLE);
+                    searchProgressBar.incrementProgressBy(1);
+                    Message msg = new Message();
+                    msg.what = 101;
+                    Bundle bundle = new Bundle();
+                    msg.setData(bundle);
+                    bundle.putString("NEW_TOPIC", query);
+                    try {
+                        mainMessenger.send(msg);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             //RESULT ACTIVITY LAUNCHER TO MANAGE PERMISSION ISSUE WITH ANDROID 12 MANAGE STORAGE
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 if (Environment.isExternalStorageManager())
-                    Toast.makeText(ChatChannelActivity.this,"We Have Permission",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChatChannelActivity.this,"Permission granted",Toast.LENGTH_SHORT).show();
                 else
-                    Toast.makeText(ChatChannelActivity.this, "You Denied the permission", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChatChannelActivity.this, "Permission denied", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(ChatChannelActivity.this, "You Denied the permission", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ChatChannelActivity.this, "Permission denied", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -443,6 +482,5 @@ public class ChatChannelActivity extends AppCompatActivity  implements ClickList
         intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "image/*");
         startActivity(intent);
     }
-
 
 }

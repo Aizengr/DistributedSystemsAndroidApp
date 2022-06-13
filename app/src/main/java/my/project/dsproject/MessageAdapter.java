@@ -164,7 +164,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 ((MessageAdapter.ReceivedImageHolder) holder).bind(message);
 
                 ((ReceivedImageHolder) holder).imageView.setOnClickListener(v ->
-                    listener.onImageClicked(messagesList.get(position)));
+                        listener.onImageClicked(messagesList.get(position)));
 
                 ((ReceivedImageHolder) holder).imageDownloadButton.setOnClickListener(v ->
                 {
@@ -192,24 +192,24 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 });
                 break;
 
-           case VIEW_TYPE_VIDEO_RECEIVED:
+            case VIEW_TYPE_VIDEO_RECEIVED:
                 ((MessageAdapter.ReceivedVideoHolder) holder).bind(message);
 
-               ((ReceivedVideoHolder) holder).videoPlayButton.setOnClickListener(v ->
-                       listener.onVideoClicked(messagesList.get(position)));
+                ((ReceivedVideoHolder) holder).videoPlayButton.setOnClickListener(v ->
+                        listener.onVideoClicked(messagesList.get(position)));
 
-               ((ReceivedVideoHolder) holder).downloadButton.setOnClickListener(v ->
-               {
-                   try {
-                       listener.onDownloadClicked(messagesList.get(position));
-                   } catch (IOException e) {
-                       e.printStackTrace();
-                   }
-               });
+                ((ReceivedVideoHolder) holder).downloadButton.setOnClickListener(v ->
+                {
+                    try {
+                        listener.onDownloadClicked(messagesList.get(position));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                 break;
 
             case VIEW_TYPE_ATTACHMENT_SENT:
-               ((MessageAdapter.SentAttachmentHolder) holder).bind(message);
+                ((MessageAdapter.SentAttachmentHolder) holder).bind(message);
                 ((SentAttachmentHolder) holder).attachmentDownloadButton.setOnClickListener(v ->
                 {
                     try {
@@ -218,7 +218,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                         e.printStackTrace();
                     }
                 });
-               break;
+                break;
 
             case VIEW_TYPE_ATTACHMENT_RECEIVED:
                 ((MessageAdapter.ReceivedAttachmentHolder) holder).bind(message);
@@ -357,7 +357,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 Bitmap thumbnail;
                 thumbnail = ThumbnailUtils.createVideoThumbnail //retrieving and scaling the bitmap
                         (message.getMultimediaFile().getPath().toString(),
-                                MediaStore.Video.Thumbnails.MICRO_KIND);
+                                MediaStore.Video.Thumbnails.MINI_KIND);
                 thumbnail = Bitmap.createScaledBitmap(thumbnail, 180, 130, true);
                 videoImageView.setImageBitmap(thumbnail);
             } catch (NullPointerException e){
@@ -386,7 +386,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 Bitmap thumbnail;
                 thumbnail = ThumbnailUtils.createVideoThumbnail //retrieving and scaling the bitmap
                         (message.getMultimediaFile().getPath().toString(),
-                                MediaStore.Video.Thumbnails.MICRO_KIND);
+                                MediaStore.Video.Thumbnails.MINI_KIND);
                 videoImageView.setImageBitmap(thumbnail);
             } catch (NullPointerException e){
                 e.printStackTrace();

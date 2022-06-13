@@ -29,8 +29,8 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_message_other"
-        android:layout_width="180dp"
-        android:layout_height="130dp"
+        android:layout_width="200dp"
+        android:layout_height="140dp"
         app:cardBackgroundColor="#eef1f6"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
@@ -46,11 +46,12 @@
             android:orientation="vertical">
 
             <ImageButton
+                android:adjustViewBounds="true"
                 android:id="@+id/video_play_button"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                android:layout_marginStart="52dp"
-                android:layout_marginTop="28dp"
+                android:layout_marginStart="63dp"
+                android:layout_marginTop="31dp"
                 android:background="@null"
                 android:contentDescription="@string/play_button"
                 android:scaleType="center"
@@ -59,12 +60,15 @@
                 tools:srcCompat="@android:drawable/ic_media_play" />
 
             <ImageView
+                android:adjustViewBounds="true"
                 android:id="@+id/video_image_other"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@null"
                 android:contentDescription="@string/video_thumbnail"
-                android:scaleType="fitXY" />
+                android:scaleType="fitXY"
+                tools:layout_editor_absoluteX="16dp"
+                tools:layout_editor_absoluteY="0dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

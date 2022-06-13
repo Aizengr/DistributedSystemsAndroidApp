@@ -28,26 +28,28 @@ public class Publisher extends UserNode implements Runnable, Serializable{
 
     @Override
     public void run() {
-        initializeConnection();
-        final Message msg = new Message();
-        if (this.socket != null) {
-            topic = searchTopic(topic, pubRequest);
-            while (!socket.isClosed()) {
-                Value newMessage = checkForNewMessage();
-                if (newMessage!= null) {
-                    if (!newMessage.isFile()){
-                        push(newMessage);
-                    }
-                    else {
-                        System.out.println(newMessage.getMultimediaFile());
-                        pushChunks(topic, newMessage.getMultimediaFile());
+        if (running) {
+            initializeConnection();
+            final Message msg = new Message();
+            if (this.socket != null) {
+                topic = searchTopic(topic, pubRequest);
+                System.out.println("yooooo " + running);
+                while (!socket.isClosed() && running) {
+                    Value newMessage = checkForNewMessage();
+                    if (newMessage != null) {
+                        if (!newMessage.isFile()) {
+                            push(newMessage);
+                        } else {
+                            System.out.println(newMessage.getMultimediaFile());
+                            pushChunks(topic, newMessage.getMultimediaFile());
+                        }
                     }
                 }
+            } else {
+                System.out.println("SYSTEM: Publisher exiting...");
+                msg.what = -1000;
+                this.handler.sendMessage(msg);
             }
-        } else {
-            System.out.println("SYSTEM: Publisher exiting...");
-            msg.what = -1000;
-            this.handler.sendMessage(msg);
         }
     }
 

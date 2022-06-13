@@ -22,7 +22,7 @@ public class Profile implements Serializable{
         userMultimediaFileMap = ArrayListMultimap.create();
     }
 
-    public void addFileToUploadQueue(String fileName, MultimediaFile file){
+    public void addFileToProfile(String fileName, MultimediaFile file){
 
         userMultimediaFileMap.put(fileName,file);
         addFileToUploadQueue(file);
@@ -46,6 +46,10 @@ public class Profile implements Serializable{
 
     public void removeFile(String name, MultimediaFile file){
         userMultimediaFileMap.remove(name,file);
+    }
+
+    public List<String> getUserSubscribedConversations(){
+        return userSubscribedConversations;
     }
 
     public void unSub(String conversationName){

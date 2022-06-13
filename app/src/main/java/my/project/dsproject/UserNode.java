@@ -22,12 +22,12 @@ public class UserNode implements Serializable {
     protected String currentAddress;
     protected final String pubRequest = "Publisher";
     protected final String conRequest = "Consumer";
+    protected boolean running = true;
 
     protected ObjectOutputStream objectOutputStream;
     protected ObjectInputStream objectInputStream;
-    protected Scanner inputScanner;
 
-    protected static final int[] portNumbers = new int[]{3000,4000,5000}; //for testing 1 broker only please keep 1 port and run the broker on the same
+    protected static final int[] portNumbers = new int[]{3000,4000}; //for testing 1 broker only please keep 1 port and run the broker on the same
 
     protected static HashMap<Integer, String> portsAndAddresses = new HashMap<>(); //ports and addresses
     protected static HashMap<Integer, Integer> availableBrokers = new HashMap<>(); //ids, ports
@@ -61,14 +61,13 @@ public class UserNode implements Serializable {
             this.socket = new Socket(address, port);
             this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             this.objectInputStream = new ObjectInputStream(socket.getInputStream());
-            this.inputScanner = new Scanner(System.in);
             try { //initial connection request for both publisher and consumer
                 Value initMessage = new Value("Connection", this.profile, type);
                 objectOutputStream.writeObject(initMessage);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("Attempting connection: \n" + port + "\n" + address + "\n");
+            System.out.println("Attempting connection: " + port + " " + address + " " + type);
         } catch (IOException e) {
             if (e.getMessage().equalsIgnoreCase("Connection refused: connect")) {
                 System.out.println(type + " connection failed. Broker at port: "
@@ -93,7 +92,11 @@ public class UserNode implements Serializable {
         } else if (portResponse != socket.getPort() || !addressResponse.equalsIgnoreCase(this.socket.getInetAddress().toString().substring(1))) { //if we are not connected to the right one, switch conn
             System.out.println("SYSTEM: Switching " + requestType + " connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
             connect(portResponse, addressResponse, requestType);
+            searchTopic(topic, requestType);
         } else {
+            if (!profile.getUserSubscribedConversations().contains(topic)){
+                profile.sub(topic);
+            }
             msg.what = 100;
             this.handler.sendMessage(msg);
         }
@@ -136,12 +139,10 @@ public class UserNode implements Serializable {
             if (this.socket != null) {
                 this.socket.close();
             }
-            if (this.inputScanner != null) {
-                this.inputScanner.close();
-            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+        this.running = false;
     }
 
     protected void disconnectComponents(int port) { //this disconnects both as consumer and as publisher from a broker
@@ -156,9 +157,6 @@ public class UserNode implements Serializable {
                     }
                     if (consumer.socket != null) {
                         consumer.socket.close();
-                    }
-                    if (consumer.inputScanner != null) {
-                        consumer.inputScanner.close();
                     }
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
@@ -176,9 +174,6 @@ public class UserNode implements Serializable {
                     }
                     if (publisher.socket != null) {
                         publisher.socket.close();
-                    }
-                    if (publisher.inputScanner != null) {
-                        publisher.inputScanner.close();
                     }
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
@@ -199,9 +194,6 @@ public class UserNode implements Serializable {
                 if (pub.socket != null) {
                     pub.socket.close();
                 }
-                if (pub.inputScanner != null) {
-                    pub.inputScanner.close();
-                }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
@@ -219,9 +211,6 @@ public class UserNode implements Serializable {
                 }
                 if (con.socket != null) {
                     con.socket.close();
-                }
-                if (con.inputScanner != null) {
-                    con.inputScanner.close();
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());

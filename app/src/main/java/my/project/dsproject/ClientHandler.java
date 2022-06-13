@@ -186,7 +186,7 @@ public class ClientHandler implements Runnable,Serializable {
         for (Map.Entry<String,Value> entry : messagesMap.entries()){
             if (entry.getKey().equalsIgnoreCase(topic)){
                 try {
-                    entry.getValue().setMessage(Integer.toString(messageCounter));
+                    entry.getValue().setMessageNumber(messageCounter);
                     System.out.println("SYSTEM: Pulling: "  + entry.getValue());
                     out.writeObject(entry.getValue());
                     messageCounter++;

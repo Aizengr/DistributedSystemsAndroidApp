@@ -20,8 +20,9 @@ public class Broker implements Serializable {
 
     private final ServerSocket serverSocket;
 
-    public Broker(ServerSocket serverSocket, InetAddress address, int id){
+    public Broker(ServerSocket serverSocket, InetAddress address, int id) throws SocketException {
         this.serverSocket = serverSocket;
+        this.serverSocket.setReuseAddress(true);
         this.address = address;
         this.id = id;
         readConfig(System.getProperty("user.dir").concat("\\src\\main\\java\\my\\project\\dsproject\\config.txt")); //reading ports ids and ips from config file
@@ -143,8 +144,8 @@ public class Broker implements Serializable {
 
     public static void main(String[] args) throws IOException {
 
-        ServerSocket serverSocket = new ServerSocket(5000); //port numbers 3000/4000/5000
-        Broker broker = new Broker(serverSocket, InetAddress.getByName("192.168.100.3"), 2); //with IDs 0/1/2 respectively
+        ServerSocket serverSocket = new ServerSocket(4000); //port numbers 3000/4000/5000
+        Broker broker = new Broker(serverSocket, InetAddress.getByName("192.168.100.3"), 1); //with IDs 0/1/2 respectively
         System.out.println("SYSTEM: Broker_" + broker.getBrokerID()+" initialized at: "
                 + serverSocket + "with address: " +  broker.getBrokerAddress());
         broker.startBroker();

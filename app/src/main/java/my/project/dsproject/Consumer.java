@@ -18,17 +18,18 @@ import android.os.Message;
 public class Consumer extends UserNode implements Runnable,Serializable {
 
     private String topic;
-    private final List<Value> conversationHistory;
+    private Queue<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
     private Context context;
 
-    public Consumer(Profile profile, Handler handler, List<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic, Context cx){
+    private boolean running = true;
+
+    public Consumer(Profile profile, Handler handler, Queue<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic, Context cx){
         super(profile, handler);
         this.context = cx;
         this.conversationHistory = conversationHistory;
         this.receivedMessageQueue = receivedMessageQueue;
         this.topic = topic;
-        aliveConsumerConnections.add(this);
     }
 
 
@@ -39,55 +40,54 @@ public class Consumer extends UserNode implements Runnable,Serializable {
 
     @Override
     public void run() {
-        initializeConnection();
-        final Message msg = new Message();
-        final Message inProgressMessage = new Message();
-        if (this.socket != null) {
-            topic = searchTopic(topic, conRequest);
-            if (topic != null) {
-                inProgressMessage.what = 201;
-                this.handler.sendMessage(inProgressMessage);
-                List<Value> data = getConversationData(topic); //getting conversation data at first
-                Value[] sortedData = sortHistory(data); //sorting them based on message
+        if (running) {
+            initializeConnection();
+            final Message msg = new Message();
+            final Message inProgressMessage = new Message();
+            if (this.socket != null) {
+                topic = searchTopic(topic, conRequest);
+                if (topic != null) {
+                    inProgressMessage.what = 201;
+                    this.handler.sendMessage(inProgressMessage);
+                    List<Value> data = getConversationData(topic); //getting conversation data at first
+                    Value[] sortedData = sortHistory(data); //sorting them based on message
 
-                for (int i = 0; i < sortedData.length; i++){
-                    List<Value> chunkList = new ArrayList<>();
-                    Value currentValue = sortedData[i];
-                    int totalChunks = 0;
-                    if (currentValue.isFile()) { //if it is file we gather all chunks and sort them before adding them
-                        totalChunks = currentValue.getRemainingChunks(); //to history
-                        for (int j = i; j <= i + totalChunks; j++){ //nested for loop in order to keep the correct order
-                            chunkList.add(data.get(j));
-                        }
-                        Value file = chunksToSingleValue(chunkList);
-                        synchronized (this) {
+                    for (int i = 0; i < sortedData.length; i++) {
+                        List<Value> chunkList = new ArrayList<>();
+                        Value currentValue = sortedData[i];
+                        int totalChunks = 0;
+                        if (currentValue.isFile()) { //if it is file we gather all chunks and sort them before adding them
+                            totalChunks = currentValue.getRemainingChunks(); //to history
+                            for (int j = i; j <= i + totalChunks; j++) { //nested for loop in order to keep the correct order
+                                chunkList.add(data.get(j));
+                            }
+                            Value file = chunksToSingleValue(chunkList);
                             conversationHistory.add(file);
-                        }
-                    } else {
-                        synchronized (this) { //if it is a message we add it to history
+
+                        } else {
                             conversationHistory.add(currentValue);
+
                         }
+                        i += totalChunks;
                     }
-                    i += totalChunks;
+                    msg.what = 200;
+                    this.handler.sendMessage(msg);
+                    while (!socket.isClosed() && running) {
+                        listenForMessage(); //listening for messages while we are connected
+                    }
                 }
-                msg.what = 200;
+            } else {
+                System.out.println("SYSTEM: Consumer exiting...");
+                msg.what = -100;
                 this.handler.sendMessage(msg);
-                while (!socket.isClosed()) {
-                    listenForMessage(); //listening for messages while we are connected
-                }
             }
-        } else {
-            System.out.println("SYSTEM: Consumer exiting...");
-            msg.what = -100;
-            this.handler.sendMessage(msg);
         }
     }
 
     private Value[] sortHistory(List<Value> data){ //sorting history based on the number of the message
         Value[] sorted = new Value[data.size()];
         for (Value value : data){
-            int index = parseInt(value.getMessage());
-            sorted[index] = value;
+            sorted[value.getMessageNumber()] = value;
         }
         return sorted;
     }
@@ -183,5 +183,9 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         return data;
     }
 
+
+    public void stop() {
+
+    }
 
 }

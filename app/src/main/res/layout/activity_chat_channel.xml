@@ -6,12 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/layout_chat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
         app:layout_constraintTop_toTopOf="parent">
+
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_chat"
@@ -20,38 +22,46 @@
             android:theme="@style/Widget.AppCompat.Toolbar"
             app:popupTheme="@style/Theme.AppCompat.Light">
 
+            <TextView
+                android:id="@+id/topic_text"
+                android:layout_width="150dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/topic"
+                android:textColor="@color/white"
+                android:textSize="25sp"
+                android:typeface="normal"/>
+
             <ImageButton
 
                 android:id="@+id/profile_button"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="1dp"
-                android:layout_marginEnd="1dp"
+                android:layout_marginStart="170dp"
                 android:adjustViewBounds="true"
                 android:background="@null"
                 android:scaleType="fitXY"
-                app:srcCompat="@drawable/profile" />
-
-            <TextView
-                android:id="@+id/topic_text"
-                android:layout_width="150dp"
-                android:layout_height="38dp"
-                android:layout_marginStart="30dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Topic"
-                android:textColor="@color/white"
-                android:textSize="25sp"
-                android:typeface="normal" />
-
-            <SearchView
-                android:layout_marginStart="20dp"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:queryHint="Search new topic"/>
+                app:srcCompat="@drawable/profile"
+                android:contentDescription="@string/profile" />
 
 
 
         </androidx.appcompat.widget.Toolbar>
+
+        <SearchView
+            android:id="@+id/topic_search"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:queryHint="Search topic here"
+            android:iconifiedByDefault="false"/>
+
+        <ProgressBar
+            android:id="@+id/searchProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -114,7 +124,8 @@
             android:background="?attr/selectableItemBackground"
             android:text="@string/send"
             android:textColor="@color/black"
-            app:srcCompat="@android:drawable/ic_menu_send" />
+            app:srcCompat="@android:drawable/ic_menu_send"
+            android:contentDescription="@string/sendbutton" />
 
         <ImageButton
             android:id="@+id/image_upload_button"
@@ -128,7 +139,8 @@
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/images2" />
+            app:srcCompat="@drawable/images2"
+            android:contentDescription="@string/imageupload" />
 
         <ImageButton
 
@@ -142,7 +154,7 @@
             android:layout_marginEnd="344dp"
             android:adjustViewBounds="true"
             android:background="@null"
-            android:contentDescription="camera"
+            android:contentDescription="@string/camera"
             android:scaleType="centerInside"
             app:srcCompat="@drawable/camera" />
 
@@ -159,7 +171,8 @@
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/videos" />
+            app:srcCompat="@drawable/videos"
+            android:contentDescription="@string/videoupload" />
 
         <ImageButton
 
@@ -175,7 +188,8 @@
             android:background="@null"
             android:scaleType="centerInside"
             app:srcCompat="@drawable/attachment2"
-            tools:ignore="TouchTargetSizeCheck" />
+            tools:ignore="TouchTargetSizeCheck"
+            android:contentDescription="@string/attachmentupload" />
 
 
     </RelativeLayout>

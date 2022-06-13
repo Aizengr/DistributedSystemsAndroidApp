@@ -1,6 +1,4 @@
 package my.project.dsproject;
-import androidx.annotation.NonNull;
-
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -12,6 +10,7 @@ public class Value implements Serializable{    //serializable object for all kin
     private final Profile profile;
     private String requestType, fileID;
     private byte[] chunk;
+    private int messageNumber = 0;
     private int remainingChunks;
     private boolean fileSharing = false;
     private MultimediaFile multimediaFile;
@@ -92,6 +91,13 @@ public class Value implements Serializable{    //serializable object for all kin
         return multimediaFile;
     }
 
+    public void setMessageNumber(int number){
+        this.messageNumber = number;
+    }
+
+    public int getMessageNumber(){
+        return this.messageNumber;
+    }
 
     public String getMessage() {
         return message;

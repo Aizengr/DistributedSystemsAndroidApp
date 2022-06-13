@@ -21,6 +21,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final int TOPIC_FOUND = 100;
+    private static final int TOPIC_CHANGED = 101;
     private static final int TOPIC_NOT_FOUND = -100;
 
     private static final int CONNECTION_IN_PROGRESS = 300;
@@ -62,12 +64,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     private Queue<Value> sentMessageQueue;
-    private List<Value> conversationHistory;
-    private Queue<Value> receivedMessageQueue;
+    public static Queue<Value> conversationHistory;
+    public static Queue<Value> receivedMessageQueue;
 
-    //HASHMAP TO KEEP ALL CONVERSATION RECEIVED MESSAGES FOR NOTIFICATIONS ON ANY CONVO NEW MESSAGE
-    public static Map<String, Queue<Value>> allTopicReceivedMessages;
-    public static Map<String, List<Value>> allTopicHistories;
+
+    Consumer currentConsumer;
+    Publisher currentPublisher;
+    String topic;
+    Intent currentChat;
+
 
 
     @Override
@@ -79,12 +84,9 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.connectionProgressBar);
         progressBar.setVisibility(View.INVISIBLE);
 
-        allTopicReceivedMessages = new HashMap<>();
-        allTopicHistories = new HashMap<>();
 
 
         submitButton.setOnClickListener(v -> {
-
 
              usernameEditText = findViewById(R.id.usernameText);
              usernameTxtView = findViewById(R.id.usernameTextView);
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
              topicTxtView = findViewById(R.id.topicTextView);
 
              String username = usernameEditText.getText().toString().trim();
-             String topic = topicEditText.getText().toString().trim();
+             topic = topicEditText.getText().toString().trim();
 
             if (usernameCheck(username)){
                 try { //minimizing keyboard
@@ -106,8 +108,8 @@ public class MainActivity extends AppCompatActivity {
                 Profile profile = new Profile(username);
 
                 sentMessageQueue = new LinkedBlockingQueue<>(); //thread safe
-                conversationHistory = new ArrayList<>(); //NOT thread safe
-                receivedMessageQueue = new LinkedBlockingQueue<>(); //thread safe
+                conversationHistory = new LinkedBlockingQueue<>();
+                receivedMessageQueue = new LinkedBlockingQueue<>();
 
 
                 ExecutorService serverConnection = Executors.newSingleThreadExecutor();
@@ -117,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                     Handler connectionHandler= new Handler(getMainLooper()){
                         @SuppressLint("SetTextI18n")
                         @Override
-                        public void handleMessage(Message msg){ //main handler for managing messages from the thread
+                        public void handleMessage(Message msg){ //main handler for managing messages from threads
                             if (msg.what == TOPIC_NOT_FOUND){
                                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                                 alertDialog.setTitle("Invalid topic");
@@ -134,8 +136,7 @@ public class MainActivity extends AppCompatActivity {
                             else if (msg.what == CONNECTION_FAILED){
                                 connectionFailureAlert();
                             }
-                            else if (msg.what == TOPIC_FOUND){
-                                progressBar.setVisibility(View.INVISIBLE);
+                            else if (msg.what == TOPIC_FOUND){;
                                 submitButton.setVisibility(View.VISIBLE);
                             }
                             else if (msg.what == CONNECTION_IN_PROGRESS){
@@ -159,28 +160,44 @@ public class MainActivity extends AppCompatActivity {
                             if (msg.what == HISTORY_READY) {
                                 progressBar.setVisibility(View.INVISIBLE);
 
-                                //adding topic and its received messages Q to the hashmap that keeps all received messages
-                                if (!allTopicReceivedMessages.containsKey(topic)){
-                                    allTopicReceivedMessages.put(topic, receivedMessageQueue);
-                                }
-                                //adding history to the static hashmp to retreive it from the second intent
-                                allTopicHistories.put(topic, conversationHistory);
+                                System.out.println("TOPIC HISTORY- FOR "+   topic);
+                                System.out.println("TOPIC HISTORY- FOR "+   conversationHistory);
                                 //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
-                                Intent chatIntent = new Intent(MainActivity.this, ChatChannelActivity.class);
-                                chatIntent.putExtra("connectionHandler", new Messenger(this));
-                                chatIntent.putExtra("profile", profile);
-                                chatIntent.putExtra("topic", topic);
-                                startActivity(chatIntent);
+                                currentChat = new Intent(MainActivity.this, ChatChannelActivity.class);
+                                currentChat.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                currentChat.putExtra("connectionHandler", new Messenger(this));
+                                currentChat.putExtra("profile", profile);
+                                currentChat.putExtra("topic", topic);
+                                startActivity(currentChat);
+                            }
+                            if (msg.what == TOPIC_CHANGED){
+                                progressBar.setVisibility(View.VISIBLE);
+                                topic = msg.getData().getString("NEW_TOPIC");
+                                System.out.println("TOPIC CHANGED TO : " + topic);
+
+                                serverConnection.execute(() -> {
+
+                                    currentPublisher.disconnect();
+                                    currentConsumer.disconnect();
+
+                                    currentPublisher = new Publisher(profile, this, sentMessageQueue, topic);
+                                    currentConsumer = new Consumer(profile, this, conversationHistory, receivedMessageQueue, topic, MainActivity.this);
+
+                                    Thread currentPublisherThread= new Thread(currentPublisher);
+                                    Thread currentConsumerThread= new Thread(currentConsumer);
+                                    currentConsumerThread.start();//starting our threads
+                                    currentPublisherThread.start();
+                                });
                             }
                         }
                     };
 
-                    Consumer newCon = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic, this);
-                    Publisher newPub = new Publisher(profile, connectionHandler, sentMessageQueue, topic);
-                    Thread pubThread = new Thread(newPub);
-                    Thread conThread = new Thread(newCon);
-                    conThread.start(); //starting our threads
-                    pubThread.start();
+                    currentConsumer = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic, this);
+                    currentPublisher = new Publisher(profile, connectionHandler, sentMessageQueue, topic);
+                    Thread currentPublisherThread= new Thread(currentPublisher);
+                    Thread currentConsumerThread= new Thread(currentConsumer);
+                    currentConsumerThread.start(); //starting our threads
+                    currentPublisherThread.start();
 
                 });
             }
