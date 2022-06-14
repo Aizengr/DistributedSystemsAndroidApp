@@ -29,11 +29,12 @@ public class Publisher extends UserNode implements Runnable, Serializable{
     @Override
     public void run() {
         if (running) {
+            System.out.println("CONSUMER THREAD ID " + Thread.currentThread().getId() +
+                    " AND NAME " + Thread.currentThread().getName() +  " Running: " + running);
             initializeConnection();
             final Message msg = new Message();
             if (this.socket != null) {
                 topic = searchTopic(topic, pubRequest);
-                System.out.println("yooooo " + running);
                 while (!socket.isClosed() && running) {
                     Value newMessage = checkForNewMessage();
                     if (newMessage != null) {

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -46,6 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -80,6 +82,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
     Messenger mainMessenger;
     SearchView topicSearch;
     ProgressBar searchProgressBar;
+    long lastSearchTime;
 
 
     @Override
@@ -99,7 +102,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         //history list
         Queue<Value> conversationHistory = MainActivity.conversationHistory;
 
-
+        lastSearchTime = 0;
         sendButton = findViewById(R.id.send_button);
         editTextMessage = findViewById(R.id.edit_message);
         textViewTopic = findViewById(R.id.topic_text);
@@ -151,10 +154,8 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
             if (!messageToSend.equals("")){
                 Value messageValue = new Value(messageToSend, profile, topic, "Publisher", "message");
 
-                sendMessageToMainHandler(400, "NEW_MESSAGE_TEXT", messageValue);
-
-                updateRecyclerMessages(messageValue);
-
+                MainActivity.sentMessageQueue.add(messageValue); //adding message to the q for publishing
+                updateRecyclerMessages(messageValue); //adding it to the recycler view as well
                 editTextMessage.setText("");
             }
         });
@@ -196,20 +197,28 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         topicSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() { //search section listener
             @Override
             public boolean onQueryTextSubmit(String query) { //in case of submit we send the message to main handler
-                if (!query.equals(topic)){
-                    searchProgressBar.setVisibility(View.VISIBLE);
-                    searchProgressBar.incrementProgressBy(1);
-                    Message msg = new Message();
-                    msg.what = 101;
-                    Bundle bundle = new Bundle();
-                    msg.setData(bundle);
-                    bundle.putString("NEW_TOPIC", query);
-                    try {
-                        mainMessenger.send(msg);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
+                //if (!query.equals(topic)){
+                    long actualSearchTime = (Calendar.getInstance()).getTimeInMillis();
+                // Only one search every second to avoid key-down & key-up
+                    if (actualSearchTime > lastSearchTime + 1000)
+                    {
+                        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, //disabling interaction until connecting to the next topic finishes
+                                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                        searchProgressBar.setVisibility(View.VISIBLE);
+                        Message msg = new Message();
+                        msg.what = 101;
+                        Bundle bundle = new Bundle();
+                        msg.setData(bundle);
+                        bundle.putString("NEW_TOPIC", query);
+                        try {
+                            System.out.println("CHANGING TOPIC TO HANDLER");
+                            mainMessenger.send(msg);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                        lastSearchTime=actualSearchTime;
                     }
-                }
+               // }
                 return false;
             }
             @Override
@@ -293,31 +302,31 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
 
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
             Value imageValue = createValueFromResult(data, "image");
-            sendMessageToMainHandler(401, "NEW_MESSAGE_IMAGE_SENT", imageValue); //sending the file to the handler
+            MainActivity.sentMessageQueue.add(imageValue);
             updateRecyclerMessages(imageValue); //sending the file to the recycler
 
         } else if (requestCode == PICK_ATTACHMENT && resultCode == RESULT_OK){
 
             Value fileValue = createValueFromResult(data, "attachment");
-            sendMessageToMainHandler(402, "NEW_MESSAGE_ATTACHMENT_SENT", fileValue); //sending the file to the handler
+            MainActivity.sentMessageQueue.add(fileValue);
             updateRecyclerMessages(fileValue); //sending the file to the recycler
         }
         else if (requestCode == PICK_VIDEO && resultCode == RESULT_OK){
 
             Value videoValue = createValueFromResult(data, "video");
-            sendMessageToMainHandler(403, "NEW_MESSAGE_VIDEO_SENT", videoValue); //sending the file to the handler
+            MainActivity.sentMessageQueue.add(videoValue);
             updateRecyclerMessages(videoValue); //sending the file to the recycler
         }
         else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK){
 
             Value imageValue = createValueFromCameraImageResult(data);
-            sendMessageToMainHandler(401, "NEW_MESSAGE_IMAGE_SENT", imageValue); //sending the file to the handler
+            MainActivity.sentMessageQueue.add(imageValue);
             updateRecyclerMessages(imageValue); //sending the file to the recycler
         }
         else if (requestCode == CAPTURE_VIDEO && resultCode == RESULT_OK) {
 
             Value videoValue = createValueFromCameraVideoResult(data);
-            sendMessageToMainHandler(403, "NEW_MESSAGE_VIDEO_SENT", videoValue); //sending the file to the handler
+            MainActivity.sentMessageQueue.add(videoValue);
             updateRecyclerMessages(videoValue); //sending the file to the recycler
         }
     }
@@ -360,20 +369,6 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         System.out.println(path);
         MultimediaFile file = new MultimediaFile(path, "video");
         return new Value(file, profile, topic, "video");
-    }
-
-    private void sendMessageToMainHandler(int code, String name, Value value){ //method to send to main handler
-
-        Message msg = new Message();
-        msg.what = code;
-        Bundle msgBundle = new Bundle();
-        msg.setData(msgBundle);
-        msgBundle.putSerializable(name, value);
-        try {
-            mainMessenger.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
     }
 
     private synchronized void updateRecyclerMessages(Value value){ //synced as the list data is also change on the executor thread

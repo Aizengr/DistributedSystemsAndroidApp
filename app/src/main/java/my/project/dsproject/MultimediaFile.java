@@ -66,6 +66,7 @@ public class MultimediaFile implements Serializable {
 
     public List<byte[]> splitInChunks(){ //method for splitting file in 512KB chunks with byte arrays
         try {
+            System.out.println(this.path);
             byte[] multimediaFileByteArray = Files.readAllBytes(this.path);
             List<byte[]> chunks = new ArrayList<>();
             for (int i=0; i < multimediaFileByteArray.length;){

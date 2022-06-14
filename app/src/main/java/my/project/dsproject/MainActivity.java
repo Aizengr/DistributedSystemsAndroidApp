@@ -12,6 +12,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.Parcelable;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int TOPIC_CHANGED = 101;
     private static final int TOPIC_NOT_FOUND = -100;
 
-    private static final int CONNECTION_IN_PROGRESS = 300;
-
     private static final int NEW_MESSAGE_TEXT_SEND = 400;
 
     private static final int NEW_MESSAGE_IMAGE_SEND = 401;
@@ -58,12 +57,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final int HISTORY_READY = 200;
-    private static final int HISTORY_IN_PROGRESS = 201;
 
     private static final int CONNECTION_FAILED = -1000;
 
 
-    private Queue<Value> sentMessageQueue;
+    public static Queue<Value> sentMessageQueue;
     public static Queue<Value> conversationHistory;
     public static Queue<Value> receivedMessageQueue;
 
@@ -72,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     Publisher currentPublisher;
     String topic;
     Intent currentChat;
-
+    Handler connectionHandler;
 
 
     @Override
@@ -92,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
              usernameTxtView = findViewById(R.id.usernameTextView);
              topicEditText = findViewById(R.id.topicText);
              topicTxtView = findViewById(R.id.topicTextView);
-
+             progressBar.setVisibility(View.VISIBLE);
              String username = usernameEditText.getText().toString().trim();
              topic = topicEditText.getText().toString().trim();
 
@@ -115,18 +113,19 @@ public class MainActivity extends AppCompatActivity {
                 ExecutorService serverConnection = Executors.newSingleThreadExecutor();
                 serverConnection.execute(() -> { //executor thread to run publisher and consumer
 
-                    @SuppressLint("HandlerLeak")
-                    Handler connectionHandler= new Handler(getMainLooper()){
+
+                    connectionHandler= new Handler(getMainLooper()){
                         @SuppressLint("SetTextI18n")
                         @Override
                         public void handleMessage(Message msg){ //main handler for managing messages from threads
                             if (msg.what == TOPIC_NOT_FOUND){
+
                                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                                 alertDialog.setTitle("Invalid topic");
                                 alertDialog.setMessage("No topics found for: "+ topic + ". Please enter a new one.");
-                                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                        (dialog, which) -> dialog.dismiss());
+                                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", (dialog, which) -> dialog.dismiss());
                                 alertDialog.show();
+
                                 usernameTxtView.setVisibility(View.GONE);
                                 usernameEditText.setVisibility(View.GONE);
                                 topicTxtView.setText("Please re-submit conversation topic:");
@@ -136,48 +135,30 @@ public class MainActivity extends AppCompatActivity {
                             else if (msg.what == CONNECTION_FAILED){
                                 connectionFailureAlert();
                             }
-                            else if (msg.what == TOPIC_FOUND){;
+                            else if (msg.what == TOPIC_FOUND){
                                 submitButton.setVisibility(View.VISIBLE);
                             }
-                            else if (msg.what == CONNECTION_IN_PROGRESS){
-                                progressBar.setVisibility(View.VISIBLE);
-                            }
-                            else if (msg.what == HISTORY_IN_PROGRESS){
-                                progressBar.setVisibility(View.VISIBLE);
-                            }
-                            else if (msg.what == NEW_MESSAGE_TEXT_SEND){
-                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_TEXT"));
-                            }
-                            else if (msg.what == NEW_MESSAGE_IMAGE_SEND){
-                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_IMAGE_SENT"));
-                            }
-                            else if (msg.what == NEW_MESSAGE_ATTACHMENT_SEND){
-                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_ATTACHMENT_SENT"));
-                            }
-                            else if (msg.what == NEW_MESSAGE_VIDEO_SEND){
-                                sentMessageQueue.add((Value)msg.getData().getSerializable("NEW_MESSAGE_VIDEO_SENT"));
-                            }
-                            if (msg.what == HISTORY_READY) {
+                            else if (msg.what == HISTORY_READY) {
                                 progressBar.setVisibility(View.INVISIBLE);
+                                runOnUiThread(() -> getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)); //in case we come from changing topic
 
                                 System.out.println("TOPIC HISTORY- FOR "+   topic);
                                 System.out.println("TOPIC HISTORY- FOR "+   conversationHistory);
                                 //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
                                 currentChat = new Intent(MainActivity.this, ChatChannelActivity.class);
-                                currentChat.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                currentChat.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //disabling multiple intents so back button goes back to main
                                 currentChat.putExtra("connectionHandler", new Messenger(this));
                                 currentChat.putExtra("profile", profile);
                                 currentChat.putExtra("topic", topic);
                                 startActivity(currentChat);
                             }
-                            if (msg.what == TOPIC_CHANGED){
-                                progressBar.setVisibility(View.VISIBLE);
+                            else if (msg.what == TOPIC_CHANGED){
                                 topic = msg.getData().getString("NEW_TOPIC");
                                 System.out.println("TOPIC CHANGED TO : " + topic);
 
-                                serverConnection.execute(() -> {
-
-                                    currentPublisher.disconnect();
+                                ExecutorService newExecutor = Executors.newSingleThreadExecutor();
+                                newExecutor.execute(() -> {
+                                    currentPublisher.disconnect(); //in case of topic change we disconnect current components and create new ones
                                     currentConsumer.disconnect();
 
                                     currentPublisher = new Publisher(profile, this, sentMessageQueue, topic);
@@ -185,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     Thread currentPublisherThread= new Thread(currentPublisher);
                                     Thread currentConsumerThread= new Thread(currentConsumer);
-                                    currentConsumerThread.start();//starting our threads
+                                    currentConsumerThread.start();
                                     currentPublisherThread.start();
                                 });
                             }
@@ -198,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
                     Thread currentConsumerThread= new Thread(currentConsumer);
                     currentConsumerThread.start(); //starting our threads
                     currentPublisherThread.start();
-
                 });
             }
             else {
@@ -232,5 +212,6 @@ public class MainActivity extends AppCompatActivity {
         });
         alertDialog.show();
     }
+
 
 }

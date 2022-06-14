@@ -22,12 +22,12 @@ public class UserNode implements Serializable {
     protected String currentAddress;
     protected final String pubRequest = "Publisher";
     protected final String conRequest = "Consumer";
-    protected boolean running = true;
 
     protected ObjectOutputStream objectOutputStream;
     protected ObjectInputStream objectInputStream;
+    protected boolean running = true;
 
-    protected static final int[] portNumbers = new int[]{3000,4000}; //for testing 1 broker only please keep 1 port and run the broker on the same
+    protected static final int[] portNumbers = new int[]{3000, 4000, 5000}; //for testing 1 broker only please keep 1 port and run the broker on the same
 
     protected static HashMap<Integer, String> portsAndAddresses = new HashMap<>(); //ports and addresses
     protected static HashMap<Integer, Integer> availableBrokers = new HashMap<>(); //ids, ports
@@ -79,9 +79,6 @@ public class UserNode implements Serializable {
 
     protected String searchTopic(String topic, String requestType) { //initial search
         final Message msg = new Message();
-        final Message progress = new Message();
-        progress.what = 201;
-        this.handler.sendMessage(progress);
         int portResponse = checkBrokerPort(topic, requestType); //asking and receiving port number for correct Broker based on the topic
         String addressResponse = checkBrokerAddress();
         if (portResponse == 0 || addressResponse == null) {
@@ -217,6 +214,7 @@ public class UserNode implements Serializable {
             }
         }
     }
+
 
     protected void disconnectAll() { //this disconnects everything
         disconnectPublishers();

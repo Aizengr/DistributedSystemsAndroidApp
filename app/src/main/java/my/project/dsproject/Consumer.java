@@ -14,6 +14,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Telephony;
 
 public class Consumer extends UserNode implements Runnable,Serializable {
 
@@ -21,8 +22,6 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     private Queue<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
     private Context context;
-
-    private boolean running = true;
 
     public Consumer(Profile profile, Handler handler, Queue<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic, Context cx){
         super(profile, handler);
@@ -43,15 +42,11 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         if (running) {
             initializeConnection();
             final Message msg = new Message();
-            final Message inProgressMessage = new Message();
             if (this.socket != null) {
                 topic = searchTopic(topic, conRequest);
                 if (topic != null) {
-                    inProgressMessage.what = 201;
-                    this.handler.sendMessage(inProgressMessage);
                     List<Value> data = getConversationData(topic); //getting conversation data at first
                     Value[] sortedData = sortHistory(data); //sorting them based on message
-
                     for (int i = 0; i < sortedData.length; i++) {
                         List<Value> chunkList = new ArrayList<>();
                         Value currentValue = sortedData[i];
@@ -182,10 +177,4 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         }
         return data;
     }
-
-
-    public void stop() {
-
-    }
-
 }
