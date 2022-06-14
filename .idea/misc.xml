@@ -9,9 +9,10 @@
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/drawable/progress.xml" value="0.1505" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/drawable/side_nav_bar.xml" value="0.4015" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_chat_channel.xml" value="0.33" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_gridview.xml" value="0.35699016673792217" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_loading.xml" value="0.215625" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_main.xml" value="0.3457264957264957" />
-        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_profile.xml" value="0.40989583333333335" />
+        <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_profile.xml" value="0.5" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/activity_topic.xml" value="0.5541666666666667" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/app_bar_profile.xml" value="0.40989583333333335" />
         <entry key="..\:/Users/kosta/AndroidStudioProjects/DSproject/app/src/main/res/layout/content_profile.xml" value="0.40989583333333335" />
@@ -36,7 +37,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_16" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17_PREVIEW" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

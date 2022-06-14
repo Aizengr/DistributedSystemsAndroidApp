@@ -23,4 +23,6 @@
     <string name="imageupload">imageUpload</string>
     <string name="sendbutton">sendButton</string>
     <string name="profile">profile</string>
+    <string name="conversation_subs_count">Conversation subs count:</string>
+    <string name="profile_name">Profile name</string>
 </resources>
