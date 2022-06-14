@@ -11,7 +11,7 @@
         android:id="@+id/download_video_button_me"
         android:layout_width="39dp"
         android:layout_height="28dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="68dp"
         android:background="@null"
         android:scaleType="centerInside"
         app:layout_constraintEnd_toStartOf="@+id/card_file_me"
@@ -21,7 +21,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/card_file_me"
         android:layout_width="200dp"
-        android:layout_height="130dp"
+        android:layout_height="170dp"
         android:layout_marginEnd="4dp"
         app:cardBackgroundColor="#774df2"
         app:cardCornerRadius="12dp"
@@ -31,21 +31,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteY="0dp">
-
-
-        <ImageButton
-            android:adjustViewBounds="true"
-            android:id="@+id/video_play_button"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="65dp"
-            android:layout_marginTop="30dp"
-            android:background="@null"
-            android:contentDescription="@string/play_button"
-            android:scaleType="center"
-            app:layout_constraintStart_toStartOf="@+id/video_image_me"
-            app:layout_constraintTop_toTopOf="@+id/video_image_me"
-            tools:srcCompat="@android:drawable/ic_media_play" />
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -61,7 +46,23 @@
                 android:layout_height="match_parent"
                 android:background="@null"
                 android:contentDescription="@string/video_thumbnail"
-                android:scaleType="fitXY" />
+                android:scaleType="fitCenter"
+                tools:srcCompat="@tools:sample/avatars"/>
+
+            <ImageButton
+                android:elevation="10dp"
+                android:id="@+id/video_play_button"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginStart="72dp"
+                android:layout_marginTop="48dp"
+                android:adjustViewBounds="true"
+                android:background="@null"
+                android:contentDescription="@string/play_button"
+                android:scaleType="centerInside"
+                app:layout_constraintStart_toStartOf="@+id/video_image_me"
+                app:layout_constraintTop_toTopOf="@+id/video_image_me"
+                tools:srcCompat="@android:drawable/ic_media_play" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

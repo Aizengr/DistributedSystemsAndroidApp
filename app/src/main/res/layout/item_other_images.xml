@@ -30,7 +30,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/card_image_other"
         android:layout_width="235dp"
-        android:layout_height="373dp"
+        android:layout_height="330dp"
         app:cardBackgroundColor="#eef1f6"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"

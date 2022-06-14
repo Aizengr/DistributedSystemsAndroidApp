@@ -358,6 +358,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         //camera result data need different approach
 
         Bitmap photo = (Bitmap) data.getExtras().get("data"); //retrieving bitmap
+
         File f = null; //creating a new file
         try {
             f = File.createTempFile("photo", ".png", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));

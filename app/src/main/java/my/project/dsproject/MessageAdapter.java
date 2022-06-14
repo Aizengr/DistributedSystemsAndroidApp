@@ -360,6 +360,8 @@ public class MessageAdapter extends RecyclerView.Adapter{
                                 MediaStore.Video.Thumbnails.MINI_KIND);
                 thumbnail = Bitmap.createScaledBitmap(thumbnail, 180, 130, true);
                 videoImageView.setImageBitmap(thumbnail);
+                videoPlayButton.setVisibility(View.VISIBLE);
+                videoPlayButton.bringToFront();
             } catch (NullPointerException e){
                 e.printStackTrace();
             }
@@ -384,10 +386,12 @@ public class MessageAdapter extends RecyclerView.Adapter{
             try {
                 nameText.setText(message.getProfile().getUsername());
                 Bitmap thumbnail;
-                thumbnail = ThumbnailUtils.createVideoThumbnail //retrieving and scaling the bitmap
+                thumbnail = ThumbnailUtils.createVideoThumbnail //retrieving
                         (message.getMultimediaFile().getPath().toString(),
                                 MediaStore.Video.Thumbnails.MINI_KIND);
                 videoImageView.setImageBitmap(thumbnail);
+                videoPlayButton.setVisibility(View.VISIBLE);
+                videoPlayButton.bringToFront();
             } catch (NullPointerException e){
                 e.printStackTrace();
             }
