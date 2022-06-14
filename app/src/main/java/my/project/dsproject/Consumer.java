@@ -21,11 +21,9 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     private String topic;
     private Queue<Value> conversationHistory;
     private Queue<Value> receivedMessageQueue;
-    private Context context;
 
-    public Consumer(Profile profile, Handler handler, Queue<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic, Context cx){
+    public Consumer(Profile profile, Handler handler, Queue<Value> conversationHistory, Queue<Value> receivedMessageQueue, String topic){
         super(profile, handler);
-        this.context = cx;
         this.conversationHistory = conversationHistory;
         this.receivedMessageQueue = receivedMessageQueue;
         this.topic = topic;
@@ -149,6 +147,7 @@ public class Consumer extends UserNode implements Runnable,Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(outputFile.getPath());
         MultimediaFile outputMultimediaFile = new MultimediaFile(outputFile, fileType);
         file = new Value(outputMultimediaFile, firstChunk.getProfile(), firstChunk.getTopic(), fileType);
         try {

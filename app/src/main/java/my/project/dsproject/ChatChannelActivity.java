@@ -46,6 +46,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -86,6 +87,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
     SearchView topicSearch;
     ProgressBar searchProgressBar;
     long lastSearchTime;
+    RecyclerView messageRecycler;
 
 
     @Override
@@ -122,7 +124,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         searchProgressBar = findViewById(R.id.searchProgressBar);
         searchProgressBar.setVisibility(View.INVISIBLE);
 
-        RecyclerView messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
+        messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
         messageAdapter = new MessageAdapter(this, profile, allMessagesList, this);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
@@ -139,7 +141,10 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
                     synchronized (this){
                         allMessagesList.add(MainActivity.receivedMessageQueue.poll());
                     }
-                    runOnUiThread(() -> messageAdapter.notifyItemInserted(allMessagesList.size() - 1));
+                    runOnUiThread(() -> {
+                        messageAdapter.notifyItemInserted(allMessagesList.size() - 1);
+                        messageRecycler.smoothScrollToPosition(allMessagesList.size() - 1);
+                    });
                 }
             }
         });
@@ -337,8 +342,14 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
 
     private Value createValueFromResult(Intent data, String fileType){ //creating value from intent data
 
-        String uriString = data.getData().getPath();
-        String path = uriString.substring(uriString.indexOf(":")+1);
+        Uri uri = data.getData();
+        String path = null;
+        try {
+            path = FileUtils.getPath(this,uri);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        System.out.println(path);
         MultimediaFile file = new MultimediaFile(path, fileType);
         return new Value(file, profile, topic, fileType);
     }
@@ -346,12 +357,16 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
     private Value createValueFromCameraImageResult(Intent data){
         //camera result data need different approach
 
-        String newImageName = "photo.jpg";
         Bitmap photo = (Bitmap) data.getExtras().get("data"); //retrieving bitmap
-        File f = new File(getApplicationContext().getCacheDir(), "photo.jpg"); //creating a new file
+        File f = null; //creating a new file
+        try {
+            f = File.createTempFile("photo", ".png", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        photo.compress(Bitmap.CompressFormat.PNG, 0, bos);
+        photo.compress(Bitmap.CompressFormat.PNG, 100, bos);
         byte[] bitMapData = bos.toByteArray();
 
         FileOutputStream fos;
@@ -360,16 +375,22 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
             fos.write(bitMapData);
             fos.flush();
             fos.close();
+            f.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        MultimediaFile file = new MultimediaFile(getApplicationContext().getCacheDir().getPath() + "/" + newImageName, "image");
+        MultimediaFile file = new MultimediaFile(f.getPath(), "image");
         return new Value(file, profile, topic, "image");
     }
 
     private Value createValueFromCameraVideoResult(Intent data) {
         Uri uri = data.getData();
-        String path = getRealPathFromURI(ChatChannelActivity.this,uri);
+        String path = null;
+        try {
+            path = FileUtils.getPath(this,uri);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         System.out.println(path);
         MultimediaFile file = new MultimediaFile(path, "video");
         return new Value(file, profile, topic, "video");
@@ -379,6 +400,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         synchronized (this){
             allMessagesList.add(value); //adding the message to the main message list for recycler
             messageAdapter.notifyItemInserted(allMessagesList.size() - 1);
+            messageRecycler.smoothScrollToPosition(allMessagesList.size() - 1);
         }
     }
 
@@ -407,20 +429,20 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         }
     }
 
-    public String getRealPathFromURI(Context context, Uri contentUri) { //GETTING REAL PATH FROM URI
-        Cursor cursor = null;
-        try {
-            String[] proj = { MediaStore.Images.Media.DATA };
-            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-    }
+//    public String getRealPathFromURI(Context context, Uri contentUri) { //GETTING REAL PATH FROM URI
+//        Cursor cursor = null;
+//        try {
+//            String[] proj = { MediaStore.Images.Media.DATA };
+//            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
+//            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+//            cursor.moveToFirst();
+//            return cursor.getString(column_index);
+//        } finally {
+//            if (cursor != null) {
+//                cursor.close();
+//            }
+//        }
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -475,7 +497,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
 
     @Override
     public void onImageClicked(Value value) { //viewing image on click
-        System.out.println(value.getMultimediaFile().getPath().toString());
+        System.out.println(Uri.parse(value.getMultimediaFile().getPath().toString()));
 
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(value.getMultimediaFile().getPath().toString()));
         intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "image/*");

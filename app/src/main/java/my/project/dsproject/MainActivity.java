@@ -101,76 +101,69 @@ public class MainActivity extends AppCompatActivity {
                 conversationHistory = new LinkedBlockingQueue<>();
                 receivedMessageQueue = new LinkedBlockingQueue<>();
 
+                ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(); //executors instead of async task
+                ExecutorService publisherExecutor = Executors.newSingleThreadExecutor(); //async tasks deprecated
 
-                ExecutorService serverConnection = Executors.newSingleThreadExecutor();
-                serverConnection.execute(() -> { //executor thread to run publisher and consumer
 
+                connectionHandler= new Handler(getMainLooper()){
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void handleMessage(Message msg){ //main handler for managing messages from threads
+                        if (msg.what == TOPIC_NOT_FOUND){
 
-                    connectionHandler= new Handler(getMainLooper()){
-                        @SuppressLint("SetTextI18n")
-                        @Override
-                        public void handleMessage(Message msg){ //main handler for managing messages from threads
-                            if (msg.what == TOPIC_NOT_FOUND){
+                            showInvalidTopicDialog();
+                            usernameTxtView.setVisibility(View.GONE);
+                            usernameEditText.setVisibility(View.GONE);
+                            topicTxtView.setText("Please re-submit conversation topic:");
+                            submitButton.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.INVISIBLE);
 
-                                showInvalidTopicDialog();
-                                usernameTxtView.setVisibility(View.GONE);
-                                usernameEditText.setVisibility(View.GONE);
-                                topicTxtView.setText("Please re-submit conversation topic:");
-                                submitButton.setVisibility(View.VISIBLE);
-                                progressBar.setVisibility(View.INVISIBLE);
+                            LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(MainActivity.this);
+                            Intent noTopicFoundIntent = new Intent("TOPIC_NOT_FOUND");
+                            noTopicFoundIntent.putExtra("TOPIC_NOT_FOUND", topic);
+                            localBroadcastManager.sendBroadcast(noTopicFoundIntent);
 
-                                LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(MainActivity.this);
-                                Intent noTopicFoundIntent = new Intent("TOPIC_NOT_FOUND");
-                                noTopicFoundIntent.putExtra("TOPIC_NOT_FOUND", topic);
-                                localBroadcastManager.sendBroadcast(noTopicFoundIntent);
-
-                            }
-                            else if (msg.what == CONNECTION_FAILED){
-                                connectionFailureAlert();
-                            }
-                            else if (msg.what == TOPIC_FOUND){
-                                submitButton.setVisibility(View.VISIBLE);
-                            }
-                            else if (msg.what == HISTORY_READY) {
-
-                                progressBar.setVisibility(View.INVISIBLE);
-                                runOnUiThread(() -> getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)); //in case we come from changing topic
-                                //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
-                                currentChat = new Intent(MainActivity.this, ChatChannelActivity.class);
-                                currentChat.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //disabling multiple intents so back button goes back to main
-                                currentChat.putExtra("connectionHandler", new Messenger(this));
-                                currentChat.putExtra("profile", profile);
-                                currentChat.putExtra("topic", topic);
-                                startActivity(currentChat);
-                            }
-                            else if (msg.what == TOPIC_CHANGED){
-                                topic = msg.getData().getString("NEW_TOPIC");
-                                System.out.println("TOPIC CHANGED TO : " + topic);
-
-                                ExecutorService newExecutor = Executors.newSingleThreadExecutor();
-                                newExecutor.execute(() -> {
-                                    currentPublisher.disconnect(); //in case of topic change we disconnect current components and create new ones
-                                    currentConsumer.disconnect();
-
-                                    currentPublisher = new Publisher(profile, this, sentMessageQueue, topic);
-                                    currentConsumer = new Consumer(profile, this, conversationHistory, receivedMessageQueue, topic, MainActivity.this);
-
-                                    Thread currentPublisherThread= new Thread(currentPublisher);
-                                    Thread currentConsumerThread= new Thread(currentConsumer);
-                                    currentConsumerThread.start();
-                                    currentPublisherThread.start();
-                                });
-                            }
                         }
-                    };
+                        else if (msg.what == CONNECTION_FAILED){
+                            connectionFailureAlert();
+                        }
+                        else if (msg.what == TOPIC_FOUND){
+                            submitButton.setVisibility(View.VISIBLE);
+                        }
+                        else if (msg.what == HISTORY_READY) {
 
-                    currentConsumer = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic, this);
-                    currentPublisher = new Publisher(profile, connectionHandler, sentMessageQueue, topic);
-                    Thread currentPublisherThread= new Thread(currentPublisher);
-                    Thread currentConsumerThread= new Thread(currentConsumer);
-                    currentConsumerThread.start(); //starting our threads
-                    currentPublisherThread.start();
-                });
+                            progressBar.setVisibility(View.INVISIBLE);
+                            runOnUiThread(() -> getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)); //in case we come from changing topic
+                            //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
+                            currentChat = new Intent(MainActivity.this, ChatChannelActivity.class);
+                            currentChat.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //disabling multiple intents so back button goes back to main
+                            currentChat.putExtra("connectionHandler", new Messenger(this));
+                            currentChat.putExtra("profile", profile);
+                            currentChat.putExtra("topic", topic);
+                            startActivity(currentChat);
+                        }
+                        else if (msg.what == TOPIC_CHANGED){
+                            topic = msg.getData().getString("NEW_TOPIC");
+                            System.out.println("TOPIC CHANGED TO : " + topic);
+
+                            currentConsumer.disconnect(); //disconnecting current components
+                            currentPublisher.disconnect();
+                            consumerExecutor.shutdownNow(); //stopping previous threads
+                            publisherExecutor.shutdownNow();
+
+                            ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(); //creating new ones
+                            consumerExecutor.execute( currentConsumer = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic));//executor running consumer
+
+                            ExecutorService publisherExecutor = Executors.newSingleThreadExecutor();
+                            publisherExecutor.execute( currentPublisher = new Publisher(profile, connectionHandler, sentMessageQueue, topic));//executor running publisher
+
+                        }
+                    }
+                };
+
+                consumerExecutor.execute( currentConsumer = new Consumer(profile, connectionHandler, conversationHistory, receivedMessageQueue, topic));//executor thread to run publisher and consumer
+                publisherExecutor.execute( currentPublisher = new Publisher(profile, connectionHandler, sentMessageQueue, topic));//executor thread to run publisher and consumer
+
             }
             else {
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
