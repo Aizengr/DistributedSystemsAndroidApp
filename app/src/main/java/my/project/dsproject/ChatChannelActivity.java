@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -13,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -98,6 +101,8 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         String [] subs = new String[profile.getUserSubscribedConversations().size()];
         profile.getUserSubscribedConversations().toArray(subs);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(listener, //listener for changing topics
+                new IntentFilter("TOPIC_NOT_FOUND"));
 
         //history list
         Queue<Value> conversationHistory = MainActivity.conversationHistory;
@@ -126,7 +131,6 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
             System.out.println(conversationHistory.peek());
             updateRecyclerMessages(conversationHistory.poll());
         }
-
 
         ExecutorService checkForNewMessage = Executors.newSingleThreadExecutor(); //Executor thread to listen for new messages
         checkForNewMessage.execute(() -> {
@@ -197,7 +201,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         topicSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() { //search section listener
             @Override
             public boolean onQueryTextSubmit(String query) { //in case of submit we send the message to main handler
-                //if (!query.equals(topic)){
+                if (!query.equals(topic)){
                     long actualSearchTime = (Calendar.getInstance()).getTimeInMillis();
                 // Only one search every second to avoid key-down & key-up
                     if (actualSearchTime > lastSearchTime + 1000)
@@ -218,7 +222,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
                         }
                         lastSearchTime=actualSearchTime;
                     }
-               // }
+               }
                 return false;
             }
             @Override
@@ -477,5 +481,18 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         intent.setDataAndType(Uri.parse(value.getMultimediaFile().getPath().toString()), "image/*");
         startActivity(intent);
     }
+
+    private BroadcastReceiver listener = new BroadcastReceiver() { //IN CASE SEARCHED TOPIC DOES NOT EXIST
+        @Override
+        public void onReceive( Context context, Intent intent ) {
+            searchProgressBar.setVisibility(View.INVISIBLE);
+            AlertDialog alertDialog = new AlertDialog.Builder(ChatChannelActivity.this).create();
+            alertDialog.setTitle("Topic not found");
+            alertDialog.setMessage("No topics found for: " + intent.getStringExtra("TOPIC_NOT_FOUND"));
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                    (dialog, which) -> dialog.dismiss());
+            alertDialog.show();
+        }
+    };
 
 }

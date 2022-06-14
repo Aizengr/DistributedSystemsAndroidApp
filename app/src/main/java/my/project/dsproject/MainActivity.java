@@ -1,5 +1,6 @@
 package my.project.dsproject;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
@@ -47,17 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int TOPIC_CHANGED = 101;
     private static final int TOPIC_NOT_FOUND = -100;
 
-    private static final int NEW_MESSAGE_TEXT_SEND = 400;
-
-    private static final int NEW_MESSAGE_IMAGE_SEND = 401;
-
-    private static final int NEW_MESSAGE_ATTACHMENT_SEND = 402;
-
-    private static final int NEW_MESSAGE_VIDEO_SEND = 403;
-
 
     private static final int HISTORY_READY = 200;
-
     private static final int CONNECTION_FAILED = -1000;
 
 
@@ -105,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 submitButton.setVisibility(View.INVISIBLE);
                 Profile profile = new Profile(username);
 
-                sentMessageQueue = new LinkedBlockingQueue<>(); //thread safe
+                sentMessageQueue = new LinkedBlockingQueue<>(); //thread safe lists
                 conversationHistory = new LinkedBlockingQueue<>();
                 receivedMessageQueue = new LinkedBlockingQueue<>();
 
@@ -120,17 +112,18 @@ public class MainActivity extends AppCompatActivity {
                         public void handleMessage(Message msg){ //main handler for managing messages from threads
                             if (msg.what == TOPIC_NOT_FOUND){
 
-                                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                                alertDialog.setTitle("Invalid topic");
-                                alertDialog.setMessage("No topics found for: "+ topic + ". Please enter a new one.");
-                                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", (dialog, which) -> dialog.dismiss());
-                                alertDialog.show();
-
+                                showInvalidTopicDialog();
                                 usernameTxtView.setVisibility(View.GONE);
                                 usernameEditText.setVisibility(View.GONE);
                                 topicTxtView.setText("Please re-submit conversation topic:");
                                 submitButton.setVisibility(View.VISIBLE);
                                 progressBar.setVisibility(View.INVISIBLE);
+
+                                LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(MainActivity.this);
+                                Intent noTopicFoundIntent = new Intent("TOPIC_NOT_FOUND");
+                                noTopicFoundIntent.putExtra("TOPIC_NOT_FOUND", topic);
+                                localBroadcastManager.sendBroadcast(noTopicFoundIntent);
+
                             }
                             else if (msg.what == CONNECTION_FAILED){
                                 connectionFailureAlert();
@@ -139,11 +132,9 @@ public class MainActivity extends AppCompatActivity {
                                 submitButton.setVisibility(View.VISIBLE);
                             }
                             else if (msg.what == HISTORY_READY) {
+
                                 progressBar.setVisibility(View.INVISIBLE);
                                 runOnUiThread(() -> getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)); //in case we come from changing topic
-
-                                System.out.println("TOPIC HISTORY- FOR "+   topic);
-                                System.out.println("TOPIC HISTORY- FOR "+   conversationHistory);
                                 //PASSING ALL NECESSARY DATA TO THE CHAT ACTIVITY
                                 currentChat = new Intent(MainActivity.this, ChatChannelActivity.class);
                                 currentChat.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //disabling multiple intents so back button goes back to main
@@ -193,9 +184,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showInvalidTopicDialog() {
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+        alertDialog.setTitle("Invalid topic");
+        alertDialog.setMessage("No topics found for: "+ topic + ". Please enter a new one.");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", (dialog, which) -> dialog.dismiss());
+        alertDialog.show();
+    }
+
     private static boolean usernameCheck(String username) { //just a username check for length
 
-        if (username.length() < 5 || username.length() > 16) {
+        if (username.length() < 4 || username.length() > 16) {
             return false;
         }
         return true;

@@ -46,16 +46,14 @@ public class ClientHandler implements Runnable,Serializable {
     public void run() {
         Object streamObject = readStream();
         Value currentMessage = (Value)streamObject;
-        System.out.println();
         int correctPort = -1;
         String correctAddress = null;
-        System.out.println(currentMessage);
         if(currentMessage!= null){
             if(currentMessage.getMessage().equalsIgnoreCase("portCheck")){
-                System.out.println(streamObject);
-                System.out.println(correctAddress + " " + correctPort);
                 correctPort = Broker.searchBrokerPort(currentMessage);
                 correctAddress = Broker.getAddress(correctPort);
+                System.out.println("FROM PORT CHECK: " + streamObject);
+                System.out.println("CORRECT ADDRESS AND PORT FOUND - - - " + correctAddress + " - - - " + correctPort);
                 sendCorrectBrokerPort(correctPort); //sending correct Broker port
                 sendCorrectBrokerAddress(correctAddress); //sending correct Broker address
             }
@@ -154,7 +152,6 @@ public class ClientHandler implements Runnable,Serializable {
     private void broadcastMessage(String topic, Value value){ //same as above for messages
         value.setRequestType("liveMessage");
         for (ClientHandler consumer : connectedConsumers){
-            System.out.println(consumer);
             if (!consumer.getUsername().equalsIgnoreCase(this.username)){
                 System.out.println("Broadcasting to topic: " + topic.toUpperCase() +
                         "for: " + consumer.username + " and value: " + value +

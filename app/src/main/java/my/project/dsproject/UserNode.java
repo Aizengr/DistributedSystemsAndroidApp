@@ -82,9 +82,7 @@ public class UserNode implements Serializable {
         int portResponse = checkBrokerPort(topic, requestType); //asking and receiving port number for correct Broker based on the topic
         String addressResponse = checkBrokerAddress();
         if (portResponse == 0 || addressResponse == null) {
-            msg.what = -100;
             System.out.println(requestType + " ------ SYSTEM: There is no existing topic named: " + topic +". Here are available ones: " + availableTopics);
-            this.handler.sendMessage(msg);
             return null;
         } else if (portResponse != socket.getPort() || !addressResponse.equalsIgnoreCase(this.socket.getInetAddress().toString().substring(1))) { //if we are not connected to the right one, switch conn
             System.out.println("SYSTEM: Switching " + requestType + " connection to another broker on port: " + portResponse + " and hostname: " + addressResponse);
