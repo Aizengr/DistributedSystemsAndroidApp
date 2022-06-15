@@ -1,6 +1,5 @@
 package my.project.dsproject;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
@@ -15,7 +14,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.IOException;
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter{
@@ -29,14 +27,12 @@ public class MessageAdapter extends RecyclerView.Adapter{
     private static final int VIEW_TYPE_ATTACHMENT_SENT = 7;
     private static final int VIEW_TYPE_ATTACHMENT_RECEIVED = 8;
 
-    private Context context;
-    private List<Value> messagesList;
-    private Profile profile;
-    private ClickListener listener;
+    private final List<Value> messagesList;
+    private final Profile profile;
+    private final ClickListener listener;
 
 
-    public MessageAdapter(Context cx, Profile profile,  List<Value> messagesList, ClickListener listener){
-        this.context = cx;
+    public MessageAdapter(Profile profile, List<Value> messagesList, ClickListener listener){
         this.messagesList = messagesList;
         this.profile = profile;
         this.listener = listener;
@@ -85,48 +81,48 @@ public class MessageAdapter extends RecyclerView.Adapter{
     // Inflates the appropriate layout according to the ViewType.
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
 
         if (viewType == VIEW_TYPE_MESSAGE_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_my_messages, parent, false);
-            return new MessageAdapter.SentMessageHolder(view);
+            return new SentMessageHolder(view);
 
         } else if (viewType == VIEW_TYPE_MESSAGE_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_other_messages, parent, false);
-            return new MessageAdapter.ReceivedMessageHolder(view);
+            return new ReceivedMessageHolder(view);
 
         } else if (viewType == VIEW_TYPE_IMAGE_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_my_images, parent, false);
-            return new MessageAdapter.SentImageHolder(view);
+            return new SentImageHolder(view);
 
         } else if (viewType == VIEW_TYPE_IMAGE_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_other_images, parent, false);
-            return new MessageAdapter.ReceivedImageHolder(view);
+            return new ReceivedImageHolder(view);
 
         } else if (viewType == VIEW_TYPE_VIDEO_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_my_videos, parent, false);
-            return new MessageAdapter.SentVideoHolder(view);
+            return new SentVideoHolder(view);
 
         } else if (viewType == VIEW_TYPE_VIDEO_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_other_videos, parent, false);
-            return new MessageAdapter.ReceivedVideoHolder(view);
+            return new ReceivedVideoHolder(view);
 
         } else if (viewType == VIEW_TYPE_ATTACHMENT_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_my_files, parent, false);
-            return new MessageAdapter.SentAttachmentHolder(view);
+            return new SentAttachmentHolder(view);
 
         } else {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_other_files, parent, false);
-            return new MessageAdapter.ReceivedAttachmentHolder(view);
+            return new ReceivedAttachmentHolder(view);
         }
     }
 
@@ -151,9 +147,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                         listener.onImageClicked(messagesList.get(position)));
 
                 ((SentImageHolder) holder).imageDownloadButton.setOnClickListener(v ->
-                {
-                    listener.onDownloadClicked(messagesList.get(position));
-                });
+                        listener.onDownloadClicked(messagesList.get(position)));
                 break;
 
             case VIEW_TYPE_IMAGE_RECEIVED:
@@ -163,9 +157,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                         listener.onImageClicked(messagesList.get(position)));
 
                 ((ReceivedImageHolder) holder).imageDownloadButton.setOnClickListener(v ->
-                {
-                    listener.onDownloadClicked(messagesList.get(position));
-                });
+                        listener.onDownloadClicked(messagesList.get(position)));
                 break;
 
             case VIEW_TYPE_VIDEO_SENT:
@@ -175,9 +167,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                         listener.onVideoClicked(messagesList.get(position)));
 
                 ((SentVideoHolder) holder).downloadButton.setOnClickListener(v ->
-                {
-                    listener.onDownloadClicked(messagesList.get(position));
-                });
+                        listener.onDownloadClicked(messagesList.get(position)));
                 break;
 
             case VIEW_TYPE_VIDEO_RECEIVED:
@@ -187,31 +177,25 @@ public class MessageAdapter extends RecyclerView.Adapter{
                         listener.onVideoClicked(messagesList.get(position)));
 
                 ((ReceivedVideoHolder) holder).downloadButton.setOnClickListener(v ->
-                {
-                    listener.onDownloadClicked(messagesList.get(position));
-                });
+                        listener.onDownloadClicked(messagesList.get(position)));
                 break;
 
             case VIEW_TYPE_ATTACHMENT_SENT:
                 ((MessageAdapter.SentAttachmentHolder) holder).bind(message);
                 ((SentAttachmentHolder) holder).attachmentDownloadButton.setOnClickListener(v ->
-                {
-                    listener.onDownloadClicked(messagesList.get(position));
-                });
+                        listener.onDownloadClicked(messagesList.get(position)));
                 break;
 
             case VIEW_TYPE_ATTACHMENT_RECEIVED:
                 ((MessageAdapter.ReceivedAttachmentHolder) holder).bind(message);
                 ((ReceivedAttachmentHolder) holder).attachmentDownloadButton.setOnClickListener(v ->
-                {
-                    listener.onDownloadClicked(messagesList.get(position));
-                });
+                        listener.onDownloadClicked(messagesList.get(position)));
                 break;
 
         }
     }
 
-    private class SentMessageHolder extends RecyclerView.ViewHolder {
+    private static class SentMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText;
 
         SentMessageHolder(View itemView) {
@@ -226,7 +210,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
     }
 
-    private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
+    private static class ReceivedMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText, nameText;
 
         ReceivedMessageHolder(View itemView) {
@@ -242,7 +226,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
     }
 
-    private class SentImageHolder extends RecyclerView.ViewHolder {
+    private static class SentImageHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         ImageButton imageDownloadButton;
 
@@ -259,7 +243,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
         }
     }
-    private class ReceivedImageHolder extends RecyclerView.ViewHolder {
+    private static class ReceivedImageHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         TextView nameText;
         ImageButton imageDownloadButton;
@@ -281,7 +265,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
     }
 
 
-    private class SentAttachmentHolder extends RecyclerView.ViewHolder {
+    private static class SentAttachmentHolder extends RecyclerView.ViewHolder {
         TextView textView;
         ImageButton attachmentDownloadButton;
 
@@ -296,7 +280,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
     }
 
-    private class ReceivedAttachmentHolder extends RecyclerView.ViewHolder {
+    private static class ReceivedAttachmentHolder extends RecyclerView.ViewHolder {
         TextView textView, nameText;
         ImageButton attachmentDownloadButton;
 
@@ -315,7 +299,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
         }
     }
 
-    private class SentVideoHolder extends RecyclerView.ViewHolder {
+    private static class SentVideoHolder extends RecyclerView.ViewHolder {
 
         ImageView videoImageView;
         ImageButton videoPlayButton;
@@ -343,7 +327,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
             }
         }
     }
-    private class ReceivedVideoHolder extends RecyclerView.ViewHolder {
+    private static class ReceivedVideoHolder extends RecyclerView.ViewHolder {
 
         ImageView videoImageView;
         ImageButton videoPlayButton;

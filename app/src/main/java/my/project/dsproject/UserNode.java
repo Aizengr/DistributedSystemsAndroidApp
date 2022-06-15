@@ -91,6 +91,7 @@ public class UserNode implements Serializable {
         } else {
             if (!profile.getUserSubscribedConversations().contains(topic)){
                 profile.sub(topic);
+                System.out.println("SUBBED TO - " + topic);
             }
             msg.what = 100;
             this.handler.sendMessage(msg);

@@ -5,13 +5,12 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.Parcelable;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import androidx.core.app.ActivityCompat;
@@ -25,7 +24,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -37,10 +35,8 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.ByteArrayOutputStream;
@@ -128,13 +124,15 @@ public class ChatChannelActivity<Public> extends AppCompatActivity implements Cl
         searchProgressBar.setVisibility(View.INVISIBLE);
 
         messageRecycler = findViewById(R.id.recycler_chat); //finding elements and setting adapter
-        messageAdapter = new MessageAdapter(this, profile, allMessagesList, this);
+        messageAdapter = new MessageAdapter(profile, allMessagesList, this);
         messageRecycler.setLayoutManager(new LinearLayoutManager(this));
         messageRecycler.setAdapter(messageAdapter);
 
-        while(conversationHistory.peek()!=null){
-            System.out.println(conversationHistory.peek());
-            updateRecyclerMessages(conversationHistory.poll());
+        if (conversationHistory!=null){
+            while(conversationHistory.peek()!=null){
+                System.out.println(conversationHistory.peek());
+                updateRecyclerMessages(conversationHistory.poll());
+            }
         }
 
         ExecutorService checkForNewMessage = Executors.newSingleThreadExecutor(); //Executor thread to listen for new messages
@@ -209,9 +207,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity implements Cl
         profileButton.setOnClickListener( v-> {
             Intent profileIntent = new Intent(ChatChannelActivity.this, ProfileActivity.class);
             profileIntent.putExtra("profile", profile);
-            profileIntent.putExtra("listener", (Parcelable) listener);
-
-
+            startActivity(profileIntent);
         });
 
         topicSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() { //search section listener
@@ -354,12 +350,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity implements Cl
     private Value createValueFromResult(Intent data, String fileType){ //creating value from intent data
 
         Uri uri = data.getData();
-        String path = null;
-        try {
-            path = FileUtils.getPath(this,uri);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        String path = uri.getPath().substring(uri.getPath().indexOf(":") + 1);
         System.out.println(path);
         MultimediaFile file = new MultimediaFile(path, fileType);
         return new Value(file, profile, topic, fileType);
@@ -397,12 +388,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity implements Cl
 
     private Value createValueFromCameraVideoResult(Intent data) {
         Uri uri = data.getData();
-        String path = null;
-        try {
-            path = FileUtils.getPath(this,uri);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        String path = uri.getPath().substring(uri.getPath().indexOf(":") + 1);
         System.out.println(path);
         MultimediaFile file = new MultimediaFile(path, "video");
         return new Value(file, profile, topic, "video");
@@ -440,21 +426,6 @@ public class ChatChannelActivity<Public> extends AppCompatActivity implements Cl
             ActivityCompat.requestPermissions(ChatChannelActivity.this, permissions, 30);
         }
     }
-
-//    public String getRealPathFromURI(Context context, Uri contentUri) { //GETTING REAL PATH FROM URI
-//        Cursor cursor = null;
-//        try {
-//            String[] proj = { MediaStore.Images.Media.DATA };
-//            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
-//            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-//            cursor.moveToFirst();
-//            return cursor.getString(column_index);
-//        } finally {
-//            if (cursor != null) {
-//                cursor.close();
-//            }
-//        }
-//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -516,7 +487,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity implements Cl
         startActivity(intent);
     }
 
-    private BroadcastReceiver listener = new BroadcastReceiver() { //IN CASE SEARCHED TOPIC DOES NOT EXIST
+    private final BroadcastReceiver listener = new BroadcastReceiver() { //IN CASE SEARCHED TOPIC DOES NOT EXIST
         @Override
         public void onReceive( Context context, Intent intent ) {
             searchProgressBar.setVisibility(View.INVISIBLE);

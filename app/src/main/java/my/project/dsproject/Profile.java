@@ -24,12 +24,22 @@ public class Profile implements Serializable{
         return profileMultimediaFileList;
     }
 
+    public void addToProfile(MultimediaFile file) {
+        if (file != null) {
+            profileMultimediaFileList.add(file);
+        }
+    }
+
     public boolean checkSub(String topic){
         return userSubscribedConversations.contains(topic);
     }
 
     public void sub(String topic){
         userSubscribedConversations.add(topic);
+    }
+
+    public int subCount(){
+        return userSubscribedConversations.size();
     }
 
     public List<String> getUserSubscribedConversations(){

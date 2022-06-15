@@ -9,37 +9,39 @@
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:orientation="vertical">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout2"
             android:layout_width="match_parent"
+            android:layout_gravity="center"
             android:layout_height="160dp"
             android:background="#774df2">
-
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/profile_card"
                 android:layout_width="80dp"
+                android:layout_gravity="center"
                 android:layout_height="80dp"
-                android:layout_centerHorizontal="true"
-                android:elevation="12dp"
+                android:background="@color/black"
                 app:cardCornerRadius="40dp"
-                app:layout_anchorGravity="center"
+                app:elevation="5dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.501"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/profile_name">
 
+
                 <ImageView
                     android:id="@+id/profile_image"
-                    android:layout_width="match_parent"
+                    android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:scaleType="centerCrop"
-                    tools:layout_editor_absoluteX="0dp"
-                    tools:layout_editor_absoluteY="154dp"
-                    tools:srcCompat="@tools:sample/avatars" />
+                    android:layout_gravity="center"
+                    android:elevation="10dp"
+                    android:clickable="true"
+                    tools:srcCompat="@drawable/avatar" />
 
             </androidx.cardview.widget.CardView>
 
@@ -62,6 +64,7 @@
                 android:layout_height="34dp"
                 android:layout_marginTop="8dp"
                 android:text="@string/profile_name"
+                android:textAlignment="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.507"
                 app:layout_constraintStart_toStartOf="parent"
@@ -96,11 +99,11 @@
         <GridView
             android:id="@+id/simpleGridView"
             android:layout_width="match_parent"
-            android:layout_height="363dp"
+            android:layout_height="wrap_content"
             android:footerDividersEnabled="false"
-            android:horizontalSpacing="50dp"
+            android:horizontalSpacing="30dp"
             android:numColumns="3"
-            android:padding="1dp">
+            android:padding="10dp">
 
 
 
