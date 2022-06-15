@@ -70,6 +70,7 @@
                 android:scaleType="center"
                 app:layout_constraintStart_toStartOf="@+id/video_image_other"
                 app:layout_constraintTop_toTopOf="@+id/video_image_other"
+                android:src="@android:drawable/ic_media_play"
                 tools:srcCompat="@android:drawable/ic_media_play" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

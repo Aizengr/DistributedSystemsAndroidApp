@@ -53,6 +53,7 @@
                 android:contentDescription="@string/play_button"
                 android:elevation="10dp"
                 android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_play"
                 tools:srcCompat="@android:drawable/ic_media_play" />
         </FrameLayout>
 
