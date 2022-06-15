@@ -81,14 +81,6 @@ public class Publisher extends UserNode implements Runnable, Serializable{
         }
     }
 
-    boolean checkForNewUpload(){
-        return this.profile.checkUploadQueueCount() > 0; //check if there are any items under upload Q 
-    }
-
-    private MultimediaFile getNewUpload(){ //gets first item in upload Q
-        return this.profile.getFileFromUploadQueue();
-    }
-
     public void push(Value value){ //initial push
 
         try {

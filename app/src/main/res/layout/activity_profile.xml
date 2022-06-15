@@ -97,14 +97,19 @@
             android:id="@+id/simpleGridView"
             android:layout_width="match_parent"
             android:layout_height="363dp"
-            android:horizontalSpacing="50dp"
             android:footerDividersEnabled="false"
-            android:padding="1dp"
-            android:numColumns="3" />
+            android:horizontalSpacing="50dp"
+            android:numColumns="3"
+            android:padding="1dp">
+
+
+
+        </GridView>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/upload_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

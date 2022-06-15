@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
+import android.os.Parcelable;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -58,7 +59,7 @@ import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChatChannelActivity<Public> extends AppCompatActivity  implements ClickListener {
+public class ChatChannelActivity<Public> extends AppCompatActivity implements ClickListener {
 
     private MessageAdapter messageAdapter;
     private List<Value> allMessagesList; //all message list that is used by Recycler view to update the UI with any new message
@@ -83,6 +84,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
     ImageButton cameraButton;
     Profile profile;
     String topic;
+    ImageButton profileButton;
     Messenger mainMessenger;
     SearchView topicSearch;
     ProgressBar searchProgressBar;
@@ -120,6 +122,7 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
         cameraButton = findViewById(R.id.camera_button);
         topicSearch = findViewById(R.id.topic_search);
         textViewTopic.setText(topic);
+        profileButton = findViewById(R.id.profile_button);
 
         searchProgressBar = findViewById(R.id.searchProgressBar);
         searchProgressBar.setVisibility(View.INVISIBLE);
@@ -201,6 +204,14 @@ public class ChatChannelActivity<Public> extends AppCompatActivity  implements C
                 String[] permissions = {Manifest.permission.CAMERA};
                 ActivityCompat.requestPermissions(this, permissions, CAMERA_PERMISSION_CODE); // Request Permission
             }
+        });
+
+        profileButton.setOnClickListener( v-> {
+            Intent profileIntent = new Intent(ChatChannelActivity.this, ProfileActivity.class);
+            profileIntent.putExtra("profile", profile);
+            profileIntent.putExtra("listener", (Parcelable) listener);
+
+
         });
 
         topicSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() { //search section listener

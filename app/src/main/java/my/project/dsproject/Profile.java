@@ -11,29 +11,17 @@ import java.util.*;
 public class Profile implements Serializable{
 
     private String username;
-    public static Multimap<String,MultimediaFile> userMultimediaFileMap; //profiles files
-    private final Queue<MultimediaFile> pendingUpload; //q for upload
+    private final ArrayList<MultimediaFile> profileMultimediaFileList; //profiles files
     private final List<String> userSubscribedConversations; //subbed user's topics
 
     public Profile(String username){
         this.username = username;
         this.userSubscribedConversations = new ArrayList<>();
-        this.pendingUpload = new LinkedList<>();
-        userMultimediaFileMap = ArrayListMultimap.create();
+        profileMultimediaFileList = new ArrayList<>();
     }
 
-    public void addFileToProfile(String fileName, MultimediaFile file){
-
-        userMultimediaFileMap.put(fileName,file);
-        addFileToUploadQueue(file);
-    }
-
-    public void addFileToUploadQueue(MultimediaFile file){
-        pendingUpload.add(file);
-    }
-
-    public MultimediaFile getFileFromUploadQueue(){
-        return pendingUpload.poll();
+    public ArrayList <MultimediaFile> getProfileFiles(){
+        return profileMultimediaFileList;
     }
 
     public boolean checkSub(String topic){
@@ -42,10 +30,6 @@ public class Profile implements Serializable{
 
     public void sub(String topic){
         userSubscribedConversations.add(topic);
-    }
-
-    public void removeFile(String name, MultimediaFile file){
-        userMultimediaFileMap.remove(name,file);
     }
 
     public List<String> getUserSubscribedConversations(){
@@ -62,10 +46,6 @@ public class Profile implements Serializable{
 
     public void setUserName(String username){
         this.username = username;
-    }
-
-    public int checkUploadQueueCount(){
-        return pendingUpload.size();
     }
 
     @Override

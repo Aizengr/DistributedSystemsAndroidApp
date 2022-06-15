@@ -152,11 +152,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
                 ((SentImageHolder) holder).imageDownloadButton.setOnClickListener(v ->
                 {
-                    try {
-                        listener.onDownloadClicked(messagesList.get(position));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    listener.onDownloadClicked(messagesList.get(position));
                 });
                 break;
 
@@ -168,11 +164,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
                 ((ReceivedImageHolder) holder).imageDownloadButton.setOnClickListener(v ->
                 {
-                    try {
-                        listener.onDownloadClicked(messagesList.get(position));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    listener.onDownloadClicked(messagesList.get(position));
                 });
                 break;
 
@@ -184,11 +176,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
                 ((SentVideoHolder) holder).downloadButton.setOnClickListener(v ->
                 {
-                    try {
-                        listener.onDownloadClicked(messagesList.get(position));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    listener.onDownloadClicked(messagesList.get(position));
                 });
                 break;
 
@@ -200,11 +188,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
                 ((ReceivedVideoHolder) holder).downloadButton.setOnClickListener(v ->
                 {
-                    try {
-                        listener.onDownloadClicked(messagesList.get(position));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    listener.onDownloadClicked(messagesList.get(position));
                 });
                 break;
 
@@ -212,11 +196,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 ((MessageAdapter.SentAttachmentHolder) holder).bind(message);
                 ((SentAttachmentHolder) holder).attachmentDownloadButton.setOnClickListener(v ->
                 {
-                    try {
-                        listener.onDownloadClicked(messagesList.get(position));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    listener.onDownloadClicked(messagesList.get(position));
                 });
                 break;
 
@@ -224,11 +204,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 ((MessageAdapter.ReceivedAttachmentHolder) holder).bind(message);
                 ((ReceivedAttachmentHolder) holder).attachmentDownloadButton.setOnClickListener(v ->
                 {
-                    try {
-                        listener.onDownloadClicked(messagesList.get(position));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    listener.onDownloadClicked(messagesList.get(position));
                 });
                 break;
 

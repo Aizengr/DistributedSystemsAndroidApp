@@ -7,7 +7,7 @@ public interface ClickListener { //interface for handling recycler view item cli
 
     void onVideoClicked(Value value);
 
-    void onDownloadClicked(Value value) throws IOException;
+    void onDownloadClicked(Value value);
 
     void onImageClicked(Value value);
 }
