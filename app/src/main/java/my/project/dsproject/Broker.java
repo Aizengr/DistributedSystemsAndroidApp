@@ -25,7 +25,7 @@ public class Broker implements Serializable {
         this.serverSocket.setReuseAddress(true);
         this.address = address;
         this.id = id;
-        readConfig(System.getProperty("user.dir").concat("\\src\\main\\java\\my\\project\\dsproject\\config.txt")); //reading ports ids and ips from config file
+        readConfig(System.getProperty("user.dir").concat("\\app\\src\\main\\java\\my\\project\\dsproject\\config.txt")); //reading ports ids and ips from config file
         hashTopics();
         assignTopicsToBrokers();
     }
