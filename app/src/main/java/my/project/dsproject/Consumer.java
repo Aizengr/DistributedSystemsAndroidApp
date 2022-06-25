@@ -88,7 +88,7 @@ public class Consumer extends UserNode implements Runnable,Serializable {
     private Value[] sortReceivedFile(List<Value> chunkList){
         Value[] sortedChunks = new Value[chunkList.size()];
         for (Value chunk : chunkList){ //and sorting them according to the number on the chunk name
-            int index = parseInt(chunk.getFilename().substring(chunk.getFilename().lastIndexOf("_") + 1, chunk.getFilename().indexOf(".")));
+            int index = parseInt(chunk.getFilename().substring(chunk.getFilename().lastIndexOf("_") + 1, chunk.getFilename().lastIndexOf(".")));
             sortedChunks[index] = chunk;
         }
         return sortedChunks;
